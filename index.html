@@ -6,13 +6,13 @@
   <title>Cardnet SP - Hub de Sistemas & Automações</title>
   <style>
     :root {
-      --primary: #0d2346;
+      --primary: #0f172a;
       --accent: #f59e0b;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
+      --bg: #0b0f19;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
       --danger: #ef4444;
       --success: #10b981;
     }
@@ -40,7 +40,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border-bottom: 1px solid var(--border);
     }
 
     .logo-container h1 {
@@ -56,7 +57,7 @@
     .logo-container p {
       font-size: 12px;
       letter-spacing: 1.5px;
-      color: #94a3b8;
+      color: var(--text-muted);
       text-transform: uppercase;
       margin-top: 2px;
     }
@@ -80,7 +81,7 @@
       align-items: center;
       gap: 8px;
       transition: all 0.2s ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
     .btn-primary:hover {
@@ -101,7 +102,7 @@
     .section-title {
       font-size: 18px;
       font-weight: 700;
-      color: var(--primary);
+      color: #f1f5f9;
       margin: 30px 0 15px 0;
       border-left: 4px solid var(--accent);
       padding-left: 10px;
@@ -123,7 +124,7 @@
       background: var(--card-bg);
       border-radius: 10px;
       padding: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       border: 1px solid var(--border);
       transition: all 0.2s ease;
       display: flex;
@@ -134,8 +135,8 @@
 
     .card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-      border-color: #cbd5e1;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+      border-color: var(--accent);
     }
 
     .card-header {
@@ -147,19 +148,20 @@
 
     .card-icon {
       font-size: 32px;
-      background: #f1f5f9;
+      background: #0f172a;
       width: 50px;
       height: 50px;
       display: flex;
       align-items: center;
       justify-content: center;
       border-radius: 8px;
+      border: 1px solid var(--border);
     }
 
     .btn-delete {
       background: transparent;
       border: none;
-      color: #94a3b8;
+      color: var(--text-muted);
       cursor: pointer;
       font-size: 16px;
       padding: 4px 8px;
@@ -169,12 +171,12 @@
 
     .btn-delete:hover {
       color: var(--danger);
-      background-color: #fee2e2;
+      background-color: rgba(239, 68, 68, 0.15);
     }
 
     .card h3 {
       font-size: 16px;
-      color: var(--text-main);
+      color: #ffffff;
       margin-bottom: 6px;
       font-weight: 600;
     }
@@ -189,7 +191,7 @@
     .card-link {
       font-size: 13px;
       font-weight: 700;
-      color: #2563eb;
+      color: #38bdf8;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
@@ -199,6 +201,7 @@
 
     .card-link:hover {
       text-decoration: underline;
+      color: #7dd3fc;
     }
 
     /* Modal / Janela Flutuante para Importar */
@@ -208,26 +211,28 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(0, 0, 0, 0.7);
       display: none;
       justify-content: center;
       align-items: center;
       z-index: 1000;
-      backdrop-filter: blur(3px);
+      backdrop-filter: blur(4px);
     }
 
     .modal {
-      background: #ffffff;
+      background: var(--card-bg);
       border-radius: 12px;
       padding: 30px;
       width: 100%;
       max-width: 480px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border);
+      color: var(--text-main);
     }
 
     .modal h2 {
       font-size: 18px;
-      color: var(--primary);
+      color: #ffffff;
       margin-bottom: 15px;
     }
 
@@ -239,7 +244,7 @@
       display: block;
       font-size: 12px;
       font-weight: 700;
-      color: var(--text-main);
+      color: var(--text-muted);
       margin-bottom: 6px;
       text-transform: uppercase;
     }
@@ -247,14 +252,16 @@
     .form-group input, .form-group select, .form-group textarea {
       width: 100%;
       padding: 10px;
+      background: #0f172a;
       border: 1px solid var(--border);
+      color: #fff;
       border-radius: 6px;
       font-size: 14px;
       outline: none;
     }
 
     .form-group input:focus, .form-group select:focus {
-      border-color: #2563eb;
+      border-color: var(--accent);
     }
 
     .modal-buttons {
@@ -265,13 +272,17 @@
     }
 
     .btn-secondary {
-      background: #e2e8f0;
-      color: var(--text-main);
+      background: #334155;
+      color: #fff;
       border: none;
       padding: 10px 16px;
       border-radius: 6px;
       font-weight: 600;
       cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
     }
 
     .btn-save {
@@ -284,24 +295,28 @@
       cursor: pointer;
     }
 
+    .btn-save:hover {
+      background: #1d4ed8;
+    }
+
     /* Rodapé */
     footer {
-      background-color: #0f172a;
-      color: #94a3b8;
+      background-color: var(--primary);
+      color: var(--text-muted);
       text-align: center;
-      padding: 20px;
+      padding: 15px 40px;
       font-size: 13px;
       margin-top: auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px 40px;
+      border-top: 1px solid var(--border);
     }
 
     .btn-reset {
       background: transparent;
-      border: 1px solid #334155;
-      color: #94a3b8;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
       padding: 6px 12px;
       border-radius: 4px;
       font-size: 11px;
@@ -309,7 +324,7 @@
     }
 
     .btn-reset:hover {
-      background: #1e293b;
+      background: #334155;
       color: #fff;
     }
 
@@ -422,9 +437,8 @@
       { id: "m8", titulo: "FORM 07 - Liberação de Acesso", desc: "Controle de entrada de visitantes, colaboradores e veículos.", url: "FORM 07 - REV.02 - Liberação de Acesso.html", icone: "🚪", categoria: "formularios" },
       { id: "m9", titulo: "Recibo de Coleta / Entrega", desc: "Geração de comprovantes de entrega com lacres e assinaturas.", url: "RECIBO_CARDNET.html", icone: "📋", categoria: "formularios" },
       { id: "m10", titulo: "Termo de Acerto de Ponto", desc: "Justificativa e acerto de horários para inclusão/exclusão.", url: "JUSTIFICATIVA.html", icone: "⏱️", categoria: "formularios" },
-      { id: "m11", titulo: "Unificador Porto Alegre", desc: "Unificar arquivos de gravação da Unimed Porto Alegre.", url: "unificardor.html", icone: "⏱️", categoria: "producao" },
-      { id: "m12", titulo: "Calculadora da Logistica", desc: "Com base dos envios calcudora faz o peso e o total de volumes conforme padrão estabelecido.", url: "calculadoralogistica.html", icone: "⏱️", categoria: "producao" },
-
+      { id: "m11", titulo: "Unificador Porto Alegre", desc: "Unificar arquivos de gravação da Unimed Porto Alegre.", url: "unificador.html", icone: "📂", categoria: "producao" },
+      { id: "m12", titulo: "Calculadora da Logistica", desc: "Com base dos envios calculadora faz o peso e o total de volumes conforme padrão estabelecido.", url: "calculadoralogistica.html", icone: "📦", categoria: "producao" }
     ];
 
     // Carrega dados salvos ou utiliza o padrão
@@ -456,7 +470,7 @@
               <h3>${m.titulo}</h3>
               <p>${m.desc}</p>
             </div>
-            <a href="${m.url}" class="card-link">Acessar sistema →</a>
+            <a href="${m.url}" target="_blank" class="card-link">Acessar sistema ↗</a>
           </div>
         `;
 
