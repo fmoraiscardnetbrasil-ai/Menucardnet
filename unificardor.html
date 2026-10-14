@@ -3,18 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cardnet SP - Unificador de Processamento</title>
+  <title>Cardnet SP - Unificador de Arquivos Unimed Porto Alegre</title>
   <style>
     :root {
-      --primary: #0d2346;
+      --primary: #0f172a;
       --accent: #f59e0b;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
+      --bg: #0b0f19;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
       --success: #10b981;
       --warning: #f59e0b;
+      --danger: #ef4444;
     }
 
     * {
@@ -39,7 +40,7 @@
       width: 100%;
       max-width: 650px;
       border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
       border: 1px solid var(--border);
       overflow: hidden;
       text-align: center;
@@ -49,17 +50,18 @@
       background-color: var(--primary);
       color: #ffffff;
       padding: 28px 20px;
+      border-bottom: 1px solid var(--border);
     }
 
     .header h1 {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 600;
       letter-spacing: 0.5px;
     }
 
     .header p {
       font-size: 13px;
-      color: #94a3b8;
+      color: var(--text-muted);
       margin-top: 6px;
     }
 
@@ -67,24 +69,23 @@
       padding: 30px 24px;
     }
 
-    /* Área central de seleção */
     .action-card {
-      border: 2px dashed #cbd5e1;
+      border: 2px dashed var(--border);
       border-radius: 10px;
       padding: 35px 20px;
-      background: #f8fafc;
+      background: #0f172a;
       transition: all 0.2s;
       margin-bottom: 20px;
     }
 
     .action-card.has-folder {
       border-color: var(--success);
-      background: #ecfdf5;
+      background: rgba(16, 185, 129, 0.05);
     }
 
     .action-card h3 {
       font-size: 17px;
-      color: var(--primary);
+      color: #ffffff;
       margin-bottom: 8px;
     }
 
@@ -95,34 +96,33 @@
     }
 
     .btn-acao {
-      background-color: var(--primary);
-      color: white;
+      background-color: var(--accent);
+      color: #000;
       border: none;
       padding: 12px 24px;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
       border-radius: 6px;
       cursor: pointer;
-      transition: background-color 0.2s, transform 0.1s;
-      box-shadow: 0 4px 6px rgba(13, 35, 70, 0.15);
+      transition: all 0.2s;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
 
     .btn-acao:hover {
-      background-color: #163668;
-    }
-
-    .btn-acao:active {
-      transform: scale(0.98);
+      background-color: #d97706;
+      color: #fff;
     }
 
     .btn-acao:disabled {
-      background-color: #94a3b8;
+      background-color: #334155;
+      color: var(--text-muted);
       cursor: not-allowed;
       box-shadow: none;
     }
 
     .btn-processar {
-      background-color: #16a34a;
+      background-color: var(--success);
+      color: #fff;
       width: 100%;
       padding: 14px;
       font-size: 15px;
@@ -131,10 +131,9 @@
     }
 
     .btn-processar:hover {
-      background-color: #15803d;
+      background-color: #059669;
     }
 
-    /* Logs e Status Centralizados */
     .status-box {
       margin-top: 20px;
       padding: 16px;
@@ -146,15 +145,21 @@
     }
 
     .status-box.success {
-      background-color: #ecfdf5;
-      color: #065f46;
-      border: 1px solid #a7f3d0;
+      background-color: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid var(--success);
     }
 
     .status-box.warning {
-      background-color: #fffbeb;
-      color: #92400e;
-      border: 1px solid #fde68a;
+      background-color: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid var(--accent);
+    }
+
+    .status-box.error {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid var(--danger);
     }
 
     .log-area {
@@ -170,12 +175,13 @@
       display: none;
       text-align: left;
       white-space: pre-wrap;
+      border: 1px solid var(--border);
     }
 
     .pasta-info {
       font-weight: 600;
-      color: #059669;
-      margin-top: 10px;
+      color: var(--success);
+      margin-top: 12px;
       font-size: 14px;
     }
   </style>
@@ -184,13 +190,12 @@
 
   <div class="container">
     <div class="header">
-      <h1>Cardnet SP - Unificador de Arquivos Unimed Porto Alegre</h1>
+      <h1>Cardnet SP - Unificador Unimed POA</h1>
       <p>Agrupamento automático de arquivos .txt por Layout</p>
     </div>
 
     <div class="content">
       
-      <!-- Card Central de Ação -->
       <div id="actionCard" class="action-card">
         <h3>Passo 1: Selecionar a Pasta</h3>
         <p>Escolha a pasta raiz <b>PROCESSADOS</b> no seu computador</p>
@@ -198,15 +203,11 @@
         <div id="infoPasta" class="pasta-info"></div>
       </div>
 
-      <!-- Botão de Processar (Aparece após selecionar a pasta) -->
       <button id="btnProcessar" class="btn-acao btn-processar" onclick="processarArquivos()">
         🚀 Processar e Gerar Arquivos Unificados
       </button>
 
-      <!-- Mensagens de Status Centralizadas -->
       <div id="statusBox" class="status-box"></div>
-
-      <!-- Console de Logs Detalhado -->
       <div id="logArea" class="log-area"></div>
 
     </div>
@@ -239,6 +240,11 @@
     listaCodigosOrdenada.sort((a, b) => b.cod.length - a.cod.length);
 
     async function selecionarPasta() {
+      if (!window.showDirectoryPicker) {
+        alert("O seu navegador não suporta a seleção de pastas por segurança. Por favor, utilize o Google Chrome ou Microsoft Edge atualizado.");
+        return;
+      }
+
       try {
         handlePastaGlobal = await window.showDirectoryPicker();
         
@@ -252,7 +258,7 @@
       } catch (err) {
         if (err.name !== 'AbortError') {
           console.error(err);
-          alert("Erro ao selecionar a pasta.");
+          mostrarStatus("❌ Erro ao selecionar a pasta: " + err.message, "error");
         }
       }
     }
@@ -393,7 +399,7 @@
 
       } catch (err) {
         console.error(err);
-        alert("Ocorreu um erro durante o processamento: " + err.message);
+        mostrarStatus("❌ Ocorreu um erro durante o processamento: " + err.message, "error");
       } finally {
         btn.disabled = false;
         btn.innerText = "🚀 Processar e Gerar Arquivos Unificados";
