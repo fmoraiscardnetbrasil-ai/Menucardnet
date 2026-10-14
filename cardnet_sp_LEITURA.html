@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Cardnet SP - Leitor RFID</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Segoe UI, Arial;
+    background:#f4f7fc;
+}
+
+header{
+    background:#0d2346;
+    color:white;
+    padding:20px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.logo h1{
+    font-size:40px;
+}
+
+.logo span{
+    color:#4da3ff;
+}
+
+.logo p{
+    font-size:14px;
+    letter-spacing:2px;
+}
+
+.empresa{
+    text-align:right;
+}
+
+.container{
+    width:95%;
+    margin:auto;
+}
+
+.leitura{
+    background:white;
+    margin-top:25px;
+    padding:40px;
+    border-radius:15px;
+    text-align:center;
+    box-shadow:0 0 15px rgba(0,0,0,.1);
+}
+
+.leitura h1{
+    color:#0d2346;
+    font-size:55px;
+}
+
+.leitura p{
+    margin-top:10px;
+    color:#666;
+    font-size:22px;
+}
+
+#uid{
+    width:500px;
+    margin-top:30px;
+    padding:15px;
+    font-size:24px;
+    text-align:center;
+}
+
+.cards{
+    display:flex;
+    gap:20px;
+    margin-top:25px;
+}
+
+.card{
+    flex:1;
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 0 10px rgba(0,0,0,.08);
+}
+
+.card h3{
+    color:#0d2346;
+    margin-bottom:15px;
+}
+
+.valor{
+    font-size:28px;
+    font-weight:bold;
+}
+
+table{
+    width:100%;
+    margin-top:30px;
+    border-collapse:collapse;
+    background:white;
+    border-radius:15px;
+    overflow:hidden;
+}
+
+th{
+    background:#0d2346;
+    color:white;
+    padding:12px;
+}
+
+td{
+    padding:10px;
+    text-align:center;
+    border-bottom:1px solid #ddd;
+}
+
+.titulo-historico{
+    margin-top:30px;
+    font-size:25px;
+    color:#0d2346;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">
+<h1>Cardnet <span>SP</span></h1>
+<p>SISTEMA DE LEITURA RFID</p>
+</div>
+
+<div class="empresa">
+<h2>Cardnet SP</h2>
+<p>Soluções em Cartões</p>
+</div>
+
+</header>
+
+<div class="container">
+
+<div class="leitura">
+
+<h1>LEIA AQUI</h1>
+
+<p>Passe o cartão na leitora RFID</p>
+
+<input
+id="uid"
+placeholder="Aproxime o cartão aqui"
+autofocus
+>
+
+</div>
+
+<div class="cards">
+
+<div class="card">
+<h3>HEX</h3>
+<div id="hex" class="valor">-</div>
+</div>
+
+<div class="card">
+<h3>DECIMAL DIRETO</h3>
+<div id="decimal" class="valor">-</div>
+</div>
+
+<div class="card">
+<h3>DECIMAL INVERTIDO</h3>
+<div id="invertido" class="valor">-</div>
+</div>
+
+<div class="card">
+<h3>BYTES</h3>
+<div id="bytes" class="valor">-</div>
+</div>
+
+</div>
+
+<h2 class="titulo-historico">
+Histórico de Leituras
+</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>Hora</th>
+<th>HEX</th>
+<th>Decimal</th>
+<th>Invertido</th>
+</tr>
+</thead>
+
+<tbody id="historico">
+</tbody>
+
+</table>
+
+</div>
+
+<script>
+
+const campo =
+document.getElementById("uid");
+
+campo.focus();
+
+campo.addEventListener(
+"keydown",
+function(event){
+
+    if(event.key !== "Enter"){
+        return;
+    }
+
+    let uid =
+    campo.value.trim().toUpperCase();
+
+    uid =
+    uid.replace(/[^A-F0-9]/g,'');
+
+    try{
+
+        let decimal =
+        parseInt(uid,16);
+
+        let bytes = [];
+
+        for(let i=0;i<uid.length;i+=2){
+
+            bytes.push(
+                parseInt(
+                    uid.substr(i,2),
+                    16
+                )
+            );
+
+        }
+
+        let invertido =
+        [...bytes]
+        .reverse()
+        .reduce(
+            (acc,val)=>(acc*256)+val,
+            0
+        );
+
+        document.getElementById("hex")
+        .innerText = uid;
+
+        document.getElementById("decimal")
+        .innerText = decimal;
+
+        document.getElementById("invertido")
+        .innerText = invertido;
+
+        document.getElementById("bytes")
+        .innerText = bytes.join(" ");
+
+        let agora =
+        new Date();
+
+        let hora =
+        agora.toLocaleString();
+
+        let linha =
+        `
+        <tr>
+        <td>${hora}</td>
+        <td>${uid}</td>
+        <td>${decimal}</td>
+        <td>${invertido}</td>
+        </tr>
+        `;
+
+        document
+        .getElementById("historico")
+        .insertAdjacentHTML(
+            "afterbegin",
+            linha
+        );
+
+        campo.value="";
+
+    }
+
+    catch{
+
+        alert(
+            "UID inválido"
+        );
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

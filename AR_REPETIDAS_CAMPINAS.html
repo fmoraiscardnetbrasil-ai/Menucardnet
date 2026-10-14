@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conciliador de AR - Busca PDF/Excel</title>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f1f5f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 520px;
+    }
+
+    h2 { color: #1e3a8a; text-align: center; margin-bottom: 25px; font-size: 20px; }
+    .field-group { margin-bottom: 20px; }
+    label { display: block; font-weight: 600; color: #334155; margin-bottom: 8px; font-size: 14px; }
+    input[type="file"] { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; background-color: #f8fafc; }
+    button { width: 100%; background-color: #16a34a; color: white; border: none; padding: 12px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; margin-top: 10px; }
+    button:hover { background-color: #15803d; }
+    button:disabled { background-color: #94a3b8; cursor: not-allowed; }
+    .status { margin-top: 15px; text-align: center; font-size: 14px; font-weight: 500; min-height: 20px; }
+    .status.info { color: #d97706; }
+    .status.success { color: #059669; }
+    .status.error { color: #dc2626; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Conciliação de ARs (PDF x Planilha)</h2>
+
+    <div class="field-group">
+      <label for="pdfFile">1. Selecionar Arquivo PDF:</label>
+      <input type="file" id="pdfFile" accept=".pdf">
+    </div>
+
+    <div class="field-group">
+      <label for="excelFile">2. Selecionar Planilha (CSV ou Excel):</label>
+      <input type="file" id="excelFile" accept=".csv, .xlsx, .xls">
+    </div>
+
+    <button id="btnProcessar" onclick="processarArquivos()">3. Processar e Baixar Resultado Formatado</button>
+
+    <div id="statusMsg" class="status"></div>
+  </div>
+
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+    async function processarArquivos() {
+      const pdfInput = document.getElementById('pdfFile');
+      const excelInput = document.getElementById('excelFile');
+      const status = document.getElementById('statusMsg');
+      const btn = document.getElementById('btnProcessar');
+
+      if (!pdfInput.files[0] || !excelInput.files[0]) {
+        alert("Por favor, selecione ambos os arquivos (PDF e Planilha)!");
+        return;
+      }
+
+      btn.disabled = true;
+      status.className = "status info";
+      status.innerText = "Lendo PDF e formatando planilha... Aguarde.";
+
+      try {
+        const pdfFile = pdfInput.files[0];
+        const pdfArrayBuffer = await pdfFile.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: pdfArrayBuffer }).promise;
+        
+        const pdfMap = {};
+        const regex = /REMETENTE[\r\n\s]+(\d+)[\r\n\s]+CAIXA POSTAL:.*?Lote:\s*([A-Z0-9]+)/gi;
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items.map(item => item.str).join(' ');
+
+          let match;
+          while ((match = regex.exec(pageText)) !== null) {
+            pdfMap[match[2].trim()] = parseInt(match[1], 10);
+          }
+        }
+
+        const excelFile = excelInput.files[0];
+        const excelArrayBuffer = await excelFile.arrayBuffer();
+        const workbook = XLSX.read(excelArrayBuffer, { type: 'array' });
+        
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        let data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+        let headerRowIndex = 0;
+        for (let i = 0; i < data.length; i++) {
+          if (data[i] && data[i][0] && data[i][0].toString().toLowerCase().includes("nome_arquivo")) {
+            headerRowIndex = i;
+            break;
+          }
+        }
+
+        data[headerRowIndex][0] = "nome_arquivo";
+        data[headerRowIndex][1] = "2°VIA";
+        data[headerRowIndex][2] = "1°VIA";
+
+        let encontrados = 0;
+        let total = 0;
+
+        for (let r = headerRowIndex + 1; r < data.length; r++) {
+          if (!data[r] || data[r].length === 0) continue;
+          total++;
+          const rastreio = data[r][0] ? data[r][0].toString().trim() : "";
+
+          if (pdfMap[rastreio] !== undefined) {
+            data[r][2] = pdfMap[rastreio];
+            encontrados++;
+          } else {
+            if (data[r][2] === undefined) data[r][2] = "";
+          }
+        }
+
+        const newWorksheet = XLSX.utils.aoa_to_sheet(data);
+        
+        // Define largura das colunas
+        newWorksheet['!cols'] = [
+          { wch: 22 }, // nome_arquivo
+          { wch: 12 }, // 2°VIA
+          { wch: 12 }  // 1°VIA
+        ];
+
+        const newWorkbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, "Plan1");
+
+        XLSX.writeFile(newWorkbook, "AR_RESULTADO_PREENCHIDO.xlsx");
+
+        status.className = "status success";
+        status.innerText = `Concluído! ${encontrados} de ${total} itens preenchidos na 1°VIA.`;
+
+      } catch (err) {
+        console.error(err);
+        status.className = "status error";
+        status.innerText = "Erro ao processar!";
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+
+</body>
+</html>

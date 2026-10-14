@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preenchedor de Etiquetas - Alinhamento Automático</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; background-color: #f4f6f9; color: #333; }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #0056b3; margin-top: 0; }
+        .upload-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .field { display: flex; flex-direction: column; }
+        label { font-weight: bold; margin-bottom: 5px; font-size: 13px; }
+        input[type="file"], input[type="number"], select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 12px; }
+        
+        .painel-ajuste { background-color: #eef4fb; padding: 15px; border-radius: 6px; border: 1px solid #b6d4fe; margin-bottom: 20px; }
+        .painel-ajuste h4 { margin: 0 0 12px 0; color: #0056b3; }
+        .grid-ajustes { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; }
+        .grid-ajustes div { display: flex; flex-direction: column; }
+        .grid-ajustes label { font-size: 12px; font-weight: bold; color: #555; }
+        .grid-ajustes input { text-align: center; font-weight: bold; }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        button { background-color: #0056b3; color: white; border: none; padding: 14px 20px; font-size: 15px; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1; }
+        button:hover { background-color: #003d80; }
+        .btn-secundario { background-color: #6c757d; }
+        .btn-secundario:hover { background-color: #5a6268; }
+
+        #status { margin-top: 15px; font-weight: bold; color: #d9534f; }
+        .success { color: #28a745 !important; }
+        .btn-downloads { display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
+        .btn-dl { padding: 12px; border-radius: 5px; border: none; color: white; cursor: pointer; font-weight: bold; flex: 1; display: none; min-width: 200px; }
+        #btnDownloadExcel { background-color: #28a745; }
+        #btnDownloadCaixas { background-color: #dc3545; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 13px; }
+        th { background-color: #0056b3; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .destaque { font-weight: bold; color: #0056b3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎯 Alinhamento Automático ao Lado de "UNIMED CAMPINAS"</h2>
+    <p>O sistema localiza dinamicamente a posição do texto <b>UNIMED CAMPINAS</b> no PDF modelo e insere o intervalo exatamente ao lado.</p>
+    
+    <div class="upload-box">
+        <div class="field">
+            <label>1. Planilha Relatório de Caixas:</label>
+            <input type="file" id="arquivoCaixas" accept=".csv, .xls, .xlsx">
+        </div>
+        <div class="field">
+            <label>2. PDF de Etiquetas Individuais:</label>
+            <input type="file" id="arquivoPdfEtiquetas" accept=".pdf">
+        </div>
+        <div class="field">
+            <label>3. PDF Etiquetas de Caixa (Modelo):</label>
+            <input type="file" id="arquivoPdfCaixaModelo" accept=".pdf">
+        </div>
+    </div>
+
+    <div class="painel-ajuste">
+        <h4>🛠️ Ajuste Fino de Distância (em Relação ao Texto Encontrado)</h4>
+        <div class="grid-ajustes">
+            <div>
+                <label>Separador:</label>
+                <select id="prefixoTexto">
+                    <option value=" - "> - (Tracinho)</option>
+                    <option value=" : "> : (Dois pontos)</option>
+                    <option value=" ">Apenas espaço</option>
+                </select>
+            </div>
+            <div>
+                <label>Afastar para Direita (X):</label>
+                <input type="number" id="offsetX" value="135">
+            </div>
+            <div>
+                <label>Ajuste de Altura (Y):</label>
+                <input type="number" id="offsetY" value="-8">
+            </div>
+            <div>
+                <label>Tamanho da Fonte:</label>
+                <input type="number" id="fontSize" value="8.5" step="0.5">
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-secundario" onclick="testarPagina1()">👁️ Gerar Prévia da Página 1</button>
+        <button onclick="processarTudo()">🚀 Processar e Gerar PDF Completo</button>
+    </div>
+    
+    <div id="status"></div>
+
+    <div class="btn-downloads">
+        <button id="btnDownloadExcel" class="btn-dl" onclick="baixarExcel()">📊 Baixar Excel de Conferência</button>
+        <button id="btnDownloadCaixas" class="btn-dl" onclick="baixarPDFCaixas()">📦 Baixar PDF Etiquetas de Caixa</button>
+    </div>
+
+    <div id="resultadoArea"></div>
+</div>
+
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+    let dadosProcessados = [];
+    let pdfCaixasBytes = null;
+
+    async function lerPlanilha(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const primeiraAba = workbook.SheetNames[0];
+        return XLSX.utils.sheet_to_json(workbook.Sheets[primeiraAba]);
+    }
+
+    function normalizarTexto(txt) {
+        if (!txt) return "";
+        return String(txt).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+    }
+
+    function padZeros(num, size) {
+        let s = num + "";
+        while (s.length < size) s = "0" + s;
+        return s;
+    }
+
+    async function carregarEMapearDados() {
+        const fileCaixas = document.getElementById('arquivoCaixas').files[0];
+        const fileEtiquetas = document.getElementById('arquivoPdfEtiquetas').files[0];
+
+        if (!fileCaixas || !fileEtiquetas) {
+            throw new Error("Por favor selecione a planilha e o PDF de etiquetas.");
+        }
+
+        const bytesEtiquetas = await fileEtiquetas.arrayBuffer();
+        const pdfDocJS = await pdfjsLib.getDocument({ data: bytesEtiquetas.slice(0) }).promise;
+        const mapaPdf = [];
+
+        for (let i = 1; i <= pdfDocJS.numPages; i++) {
+            const page = await pdfDocJS.getPage(i);
+            const textContent = await page.getTextContent();
+            const textoPagina = textContent.items.map(item => item.str).join(' ');
+            
+            mapaPdf.push({ 
+                pagina: i, 
+                textoNormalizado: normalizarTexto(textoPagina),
+                apenasNumeros: textoPagina.replace(/\D/g, '')
+            });
+        }
+
+        const dadosCaixas = await lerPlanilha(fileCaixas);
+        const chaves = Object.keys(dadosCaixas[0]);
+        const colunaCod = chaves.find(k => k.trim().toLowerCase() === 'cod');
+        const colunaNome = chaves.find(k => k.trim().toLowerCase().includes('nome')) || 'nome_fim';
+
+        let inicioEtiqueta = 1;
+
+        dadosProcessados = dadosCaixas.map((linha) => {
+            let codValor = linha[colunaCod] ? String(linha[colunaCod]).trim() : "";
+            let codLimpo = codValor.replace(/\D/g, ''); 
+            let nomeCliente = normalizarTexto(linha[colunaNome]);
+
+            let paginaFimPDF = null;
+
+            if (codLimpo) {
+                for (let item of mapaPdf) {
+                    if (item.apenasNumeros.includes(codLimpo)) {
+                        paginaFimPDF = item.pagina;
+                        break;
+                    }
+                }
+            }
+
+            if (!paginaFimPDF && nomeCliente) {
+                for (let item of mapaPdf) {
+                    if (item.textoNormalizado.includes(nomeCliente)) {
+                        paginaFimPDF = item.pagina;
+                        break;
+                    }
+                }
+            }
+
+            let textoIntervalo = "";
+            let pagInicial = inicioEtiqueta;
+            let pagFinal = paginaFimPDF;
+
+            if (paginaFimPDF) {
+                textoIntervalo = `de ${padZeros(pagInicial, 5)} até ${padZeros(pagFinal, 5)}`;
+                inicioEtiqueta = paginaFimPDF + 1;
+            } else {
+                textoIntervalo = "Não encontrado";
+            }
+
+            return {
+                ...linha,
+                inicio_etiqueta: pagInicial,
+                pagina_fim_pdf: paginaFimPDF || "Não encontrado",
+                intervalo_formatado: textoIntervalo
+            };
+        });
+
+        return dadosProcessados;
+    }
+
+    async function aplicarPreenchimentoPDF(somentePagina1 = false) {
+        const fileCaixaModelo = document.getElementById('arquivoPdfCaixaModelo').files[0];
+        if (!fileCaixaModelo) throw new Error("Selecione o modelo do PDF de Etiquetas de Caixa.");
+
+        const bytesCaixaModelo = await fileCaixaModelo.arrayBuffer();
+        
+        // 1. Usa pdf.js para Mapear as Posições Exatas (X, Y) de "UNIMED CAMPINAS"
+        const pdfModelJS = await pdfjsLib.getDocument({ data: bytesCaixaModelo.slice(0) }).promise;
+        const posicoesUnimedPorPagina = [];
+
+        for (let p = 1; p <= pdfModelJS.numPages; p++) {
+            if (somentePagina1 && p > 1) break;
+            const page = await pdfModelJS.getPage(p);
+            const textContent = await page.getTextContent();
+            const posicoesDaPagina = [];
+
+            textContent.items.forEach(item => {
+                if (item.str.toUpperCase().includes("UNIMED CAMPINAS") || item.str.toUpperCase().includes("UNIMED")) {
+                    // Guarda coordenadas X e Y detectadas no documento
+                    posicoesDaPagina.push({
+                        x: item.transform[4],
+                        y: item.transform[5]
+                    });
+                }
+            });
+            posicoesUnimedPorPagina.push(posicoesDaPagina);
+        }
+
+        // 2. Carrega via pdf-lib para Escrever no Documento
+        const pdfDocCaixas = await PDFLib.PDFDocument.load(bytesCaixaModelo);
+        const fontCx = await pdfDocCaixas.embedFont(PDFLib.StandardFonts.HelveticaBold);
+        const paginasCaixas = pdfDocCaixas.getPages();
+
+        const prefixo = document.getElementById('prefixoTexto').value;
+        const userOffsetX = parseFloat(document.getElementById('offsetX').value) || 130;
+        const userOffsetY = parseFloat(document.getElementById('offsetY').value) || 0;
+        const userFontSize = parseFloat(document.getElementById('fontSize').value) || 7.5;
+
+        let idxCaixa = 0;
+
+        paginasCaixas.forEach((pagina, pIdx) => {
+            if (somentePagina1 && pIdx > 0) return;
+
+            const posicoesNestaPagina = posicoesUnimedPorPagina[pIdx] || [];
+
+            posicoesNestaPagina.forEach((pos) => {
+                if (idxCaixa < dadosProcessados.length) {
+                    let item = dadosProcessados[idxCaixa];
+                    if (item.pagina_fim_pdf !== "Não encontrado") {
+                        let textoParaInserir = prefixo + item.intervalo_formatado;
+                        
+                        // Posiciona exatamente com base nas coordenadas reais do texto "UNIMED CAMPINAS"
+                        let posX = pos.x + userOffsetX;
+                        let posY = pos.y + userOffsetY;
+
+                        pagina.drawText(textoParaInserir, {
+                            x: posX,
+                            y: posY,
+                            size: userFontSize,
+                            font: fontCx,
+                            color: PDFLib.rgb(0, 0, 0)
+                        });
+                    }
+                    idxCaixa++;
+                }
+            });
+        });
+
+        pdfCaixasBytes = await pdfDocCaixas.save();
+    }
+
+    async function testarPagina1() {
+        const status = document.getElementById('status');
+        try {
+            status.className = "";
+            status.innerText = "⏳ Mapeando posições e gerando prévia...";
+            await carregarEMapearDados();
+            await aplicarPreenchimentoPDF(true);
+            
+            status.className = "success";
+            status.innerText = "✅ Prévia gerada com sucesso! Clique no botão abaixo para baixar e verificar.";
+            document.getElementById('btnDownloadCaixas').style.display = "block";
+            document.getElementById('btnDownloadCaixas').innerText = "👁️ Baixar Prévia (Página 1)";
+        } catch (e) {
+            status.innerText = "❌ " + e.message;
+        }
+    }
+
+    async function processarTudo() {
+        const status = document.getElementById('status');
+        const btnExcel = document.getElementById('btnDownloadExcel');
+        const btnCx = document.getElementById('btnDownloadCaixas');
+
+        btnExcel.style.display = "none";
+        btnCx.style.display = "none";
+
+        try {
+            status.className = "";
+            status.innerText = "⏳ Mapeando posições do modelo e processando lote...";
+            await carregarEMapearDados();
+            await aplicarPreenchimentoPDF(false);
+
+            exibirTabela(dadosProcessados);
+
+            status.className = "success";
+            status.innerText = "✅ Processamento concluído com alinhamento automático!";
+            btnExcel.style.display = "block";
+            btnCx.style.display = "block";
+            btnCx.innerText = "📦 Baixar PDF Etiquetas de Caixa Completo";
+
+        } catch (e) {
+            status.innerText = "❌ " + e.message;
+        }
+    }
+
+    function exibirTabela(dados) {
+        const areaTabela = document.getElementById('resultadoArea');
+        if (dados.length === 0) return;
+
+        const colunas = Object.keys(dados[0]);
+        let html = "<table><thead><tr>";
+        colunas.forEach(col => html += `<th>${col}</th>`);
+        html += "</tr></thead><tbody>";
+
+        dados.forEach(linha => {
+            html += "<tr>";
+            colunas.forEach(col => {
+                let valor = linha[col] !== undefined ? linha[col] : '';
+                if (col === 'intervalo_formatado') {
+                    html += `<td class="destaque">${valor}</td>`;
+                } else {
+                    html += `<td>${valor}</td>`;
+                }
+            });
+            html += "</tr>";
+        });
+
+        html += "</tbody></table>";
+        areaTabela.innerHTML = html;
+    }
+
+    function baixarExcel() {
+        if (dadosProcessados.length === 0) return;
+        const worksheet = XLSX.utils.json_to_sheet(dadosProcessados);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Resultado");
+        XLSX.writeFile(workbook, "relatorio_caixas.xlsx");
+    }
+
+    function baixarPDFCaixas() {
+        if (!pdfCaixasBytes) return;
+        const blob = new Blob([pdfCaixasBytes], { type: "application/pdf" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "ETIQUETAS_DE_CAIXA_ALINHADAS.pdf";
+        link.click();
+    }
+</script>
+
+</body>
+</html>

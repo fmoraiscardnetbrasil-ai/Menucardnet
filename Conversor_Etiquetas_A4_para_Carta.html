@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conversor de Etiquetas A4 para Carta</title>
+<style>
+:root{color-scheme:light;--ink:#172033;--muted:#667085;--line:#d9dee8;--blue:#2457d6;--bg:#f4f6fb;--card:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
+main{max-width:850px;margin:36px auto;padding:0 18px}.hero{margin-bottom:20px}.hero h1{font-size:clamp(24px,4vw,34px);line-height:1.15;margin:0 0 9px}.hero p{color:var(--muted);margin:0}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;margin:16px 0;box-shadow:0 6px 22px #1720330a}
+.drop{border:2px dashed #aab6cb;border-radius:12px;padding:26px 16px;text-align:center;background:#fafbff}.drop strong{display:block;font-size:18px;margin-bottom:6px}.drop p{margin:0 0 14px;color:var(--muted)}input[type=file]{max-width:100%}.settings{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}.field label{display:flex;justify-content:space-between;gap:8px;font-weight:650;margin-bottom:8px}.field small{display:block;color:var(--muted);font-weight:400}.field input[type=range]{width:100%}.field input[type=number]{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}button{border:0;border-radius:10px;padding:12px 17px;font:inherit;font-weight:700;cursor:pointer}.primary{background:var(--blue);color:#fff}.secondary{background:#edf1f8;color:var(--ink)}button:disabled{opacity:.45;cursor:not-allowed}.status{margin-top:14px;padding:12px 14px;border-radius:10px;background:#f0f4ff;color:#24438a;white-space:pre-wrap}.status.error{background:#fff0ef;color:#9d2820}.status:empty{display:none}.hint{color:var(--muted);font-size:14px}.check{display:flex;align-items:center;gap:9px;margin-top:14px}.check input{width:18px;height:18px}.steps{padding-left:21px}.steps li{margin:6px 0}.footer{font-size:13px;color:var(--muted);text-align:center;margin:20px 0 30px}
+@media(max-width:600px){.settings{grid-template-columns:1fr}.card{padding:16px}main{margin:22px auto}}
+</style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <h1>Conversor de etiquetas A4 → Carta</h1>
+    <p>Carregue um PDF em A4 e gere uma cópia em papel Carta, com o ajuste de margens para reduzir o risco de cortar as etiquetas.</p>
+  </header>
+  <section class="card">
+    <div class="drop">
+      <strong>1. Escolha o PDF original em A4</strong>
+      <p>O arquivo é processado no seu navegador; não é enviado para um servidor.</p>
+      <input id="pdfFile" type="file" accept="application/pdf,.pdf">
+      <div id="fileInfo" class="hint" style="margin-top:10px">Nenhum arquivo selecionado.</div>
+    </div>
+    <div class="settings">
+      <div class="field">
+        <label for="scale">Escala do conteúdo <span id="scaleLabel">89,8%</span></label>
+        <input id="scale" type="range" min="75" max="100" step="0.1" value="89.8">
+        <small>O padrão de 89,8% corresponde ao ajuste da versão que funcionou.</small>
+      </div>
+      <div class="field">
+        <label for="vertical">Margem superior/inferior (pt)</label>
+        <input id="vertical" type="number" min="0" max="60" step="1" value="18">
+        <small>18 pt equivalem a cerca de 6,3 mm.</small>
+      </div>
+    </div>
+    <label class="check"><input id="center" type="checkbox" checked> Centralizar horizontalmente</label>
+    <div class="actions">
+      <button id="convert" class="primary" disabled>Converter e baixar PDF Carta</button>
+      <button id="reset" class="secondary" type="button">Restaurar ajuste recomendado</button>
+    </div>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+  </section>
+  <section class="card">
+    <strong>Na hora de imprimir</strong>
+    <ol class="steps">
+      <li>Selecione o tamanho de papel <b>Carta (Letter)</b>.</li>
+      <li>Escolha <b>Tamanho real / 100%</b> e desative “Ajustar à página”.</li>
+      <li>Faça primeiro um teste em uma folha comum antes de usar as etiquetas.</li>
+    </ol>
+    <p class="hint">A posição física das etiquetas varia conforme a folha e a impressora. Se precisar, ajuste a escala e a margem e gere outro PDF.</p>
+  </section>
+  <p class="footer">Conversão local no navegador • O PDF original não é alterado</p>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script>
+const fileInput=document.getElementById('pdfFile');
+const fileInfo=document.getElementById('fileInfo');
+const convertBtn=document.getElementById('convert');
+const statusBox=document.getElementById('status');
+const scaleInput=document.getElementById('scale');
+const scaleLabel=document.getElementById('scaleLabel');
+const verticalInput=document.getElementById('vertical');
+let selectedFile=null;
+scaleInput.addEventListener('input',()=>scaleLabel.textContent=Number(scaleInput.value).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%');
+fileInput.addEventListener('change',()=>{
+  selectedFile=fileInput.files&&fileInput.files[0]?fileInput.files[0]:null;
+  convertBtn.disabled=!selectedFile;
+  statusBox.className='status'; statusBox.textContent='';
+  fileInfo.textContent=selectedFile?`${selectedFile.name} • ${(selectedFile.size/1024).toLocaleString('pt-BR',{maximumFractionDigits:1})} KB`:'Nenhum arquivo selecionado.';
+});
+document.getElementById('reset').addEventListener('click',()=>{scaleInput.value='89.8';scaleLabel.textContent='89,8%';verticalInput.value='18';document.getElementById('center').checked=true;});
+convertBtn.addEventListener('click',async()=>{
+  if(!selectedFile)return;
+  if(!window.PDFLib){showStatus('Não foi possível carregar a biblioteca de PDF. Verifique sua conexão com a internet e abra o HTML novamente.',true);return;}
+  convertBtn.disabled=true;showStatus('Convertendo o arquivo (todas as páginas)…',false);
+  try{
+    const {PDFDocument}=PDFLib;
+    const bytes=await selectedFile.arrayBuffer();
+    const source=await PDFDocument.load(bytes);
+    const output=await PDFDocument.create();
+    
+    const totalPages = source.getPageCount();
+    // Mapeia e incorpora todas as páginas do documento de origem
+    const pageIndices = Array.from({length: totalPages}, (_, i) => i);
+    const embeddedPages = await output.embedPdf(source, pageIndices);
+    
+    const scale=Number(scaleInput.value)/100;
+    const marginY=Number(verticalInput.value);
+    if(!Number.isFinite(marginY)||marginY<0||marginY>60)throw new Error('Informe uma margem vertical entre 0 e 60 pontos.');
+    const letterW=612,letterH=792;
+    
+    for(let i=0;i<totalPages;i++){
+      const embedded=embeddedPages[i];
+      const page=output.addPage([letterW,letterH]);
+      const {width: origWidth, height: origHeight} = embedded.size();
+      const w=origWidth*scale, h=origHeight*scale;
+      
+      const x=document.getElementById('center').checked?(letterW-w)/2:0;
+      const y=letterH-h-marginY;
+      page.drawPage(embedded,{x,y,width:w,height:h});
+    }
+    
+    const result=await output.save();
+    const blob=new Blob([result],{type:'application/pdf'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const base=selectedFile.name.replace(/\.pdf$/i,'');
+    a.href=url;a.download=base+'_Carta_Ajustado.pdf';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    showStatus(`Pronto! PDF Carta gerado com todas as ${totalPages} página(s) com sucesso.`,false);
+  }catch(err){showStatus('Não foi possível converter: '+(err&&err.message?err.message:'erro desconhecido'),true);}
+  finally{convertBtn.disabled=!selectedFile;}
+});
+function showStatus(message,error){statusBox.textContent=message;statusBox.className='status'+(error?' error':'');}
+</script>
+</body>
+</html>

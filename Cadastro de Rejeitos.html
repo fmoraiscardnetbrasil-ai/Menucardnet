@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Rejeitos Cardnet</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #eef2f5;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* Card do Formulário Centralizado */
+    .form-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 440px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      border: 1px solid #e1e6eb;
+    }
+
+    .form-header {
+      background: #1e293b;
+      color: #ffffff;
+      padding: 24px 20px;
+      text-align: center;
+    }
+
+    .form-header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .form-header p {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    form {
+      padding: 24px 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #dc2626;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.2s;
+      box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
+    }
+
+    button:hover {
+      background-color: #b91c1c;
+    }
+
+    /* Template Oculto na Tela */
+    .etiqueta-daruma {
+      display: none;
+    }
+
+    /* Layout Exclusivo para Impressão Térmica (Daruma - Bobina 80mm) */
+    @media print {
+      @page {
+        margin: 0;
+      }
+      body * {
+        visibility: hidden;
+      }
+      .etiqueta-daruma, .etiqueta-daruma * {
+        visibility: visible;
+      }
+      .etiqueta-daruma {
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 72mm;
+        padding: 4mm 4mm 20mm 4mm; /* Adicionado 20mm de margem no final do papel */
+        font-family: 'Courier New', Courier, monospace;
+        color: #000;
+        page-break-inside: avoid;
+      }
+      .header-daruma {
+        text-align: center;
+        border-bottom: 2px solid #000;
+        padding-bottom: 6px;
+        margin-bottom: 8px;
+      }
+      .header-daruma h2 {
+        margin: 0;
+        font-size: 12pt;
+        text-transform: uppercase;
+      }
+      .header-daruma h3 {
+        margin: 2px 0 0 0;
+        font-size: 14pt;
+        font-weight: bold;
+      }
+      .campo {
+        margin-bottom: 4px;
+      }
+      .label-print {
+        font-size: 8pt;
+        text-transform: uppercase;
+        display: block;
+      }
+      .valor {
+        font-size: 11pt;
+        font-weight: bold;
+      }
+      .divisor {
+        border-bottom: 1px dashed #000;
+        margin: 6px 0;
+      }
+      .espaco-corte {
+        height: 15mm; /* Espaço em branco reservado exclusivamente para o corte */
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-card">
+    <div class="form-header">
+      <h1>Registro de Rejeitos Cardnet</h1>
+      <p>Emissão de Etiqueta Térmica</p>
+    </div>
+
+    <form id="formRejeito">
+      <div class="form-group">
+        <label for="solicitante">Solicitante (Nome)</label>
+        <input type="text" id="solicitante" required placeholder="Ex: João Silva">
+      </div>
+
+      <div class="form-group">
+        <label for="modelo">Modelo do Cartão</label>
+        <input type="text" id="modelo" required placeholder="Ex: Modelo Gold">
+      </div>
+
+      <div class="form-group">
+        <label for="data">Data</label>
+        <input type="date" id="data" required>
+      </div>
+
+      <div class="form-group">
+        <label for="quantidade">Qtd. de Cartões Rejeitados</label>
+        <input type="number" id="quantidade" required placeholder="Ex: 50">
+      </div>
+
+      <div class="form-group">
+        <label for="aus">Número da OS</label>
+        <input type="text" id="aus" required placeholder="Ex: OS-9876">
+      </div>
+
+      <button type="button" onclick="imprimir()">Imprimir Etiqueta</button>
+    </form>
+  </div>
+
+  <div class="etiqueta-daruma" id="etiqueta">
+    <div class="header-daruma">
+      <h2>CARDNET</h2>
+      <h3>** REJEITO **</h3>
+    </div>
+
+    <div class="campo">
+      <span class="label-print">SOLICITANTE:</span>
+      <div class="valor" id="pSolicitante"></div>
+    </div>
+
+    <div class="divisor"></div>
+
+    <div class="campo">
+      <span class="label-print">MODELO DO CARTÃO:</span>
+      <div class="valor" id="pModelo"></div>
+    </div>
+
+    <div class="divisor"></div>
+
+    <div class="campo">
+      <span class="label-print">DATA DA REJEIÇÃO:</span>
+      <div class="valor" id="pData"></div>
+    </div>
+
+    <div class="divisor"></div>
+
+    <div class="campo">
+      <span class="label-print">QTD CARTÕES REJEITADOS:</span>
+      <div class="valor" id="pQuantidade"></div>
+    </div>
+
+    <div class="divisor"></div>
+
+    <div class="campo">
+      <span class="label-print">NÚMERO DA OS:</span>
+      <div class="valor" id="pAus"></div>
+    </div>
+
+    <div class="divisor"></div>
+    
+    <div class="espaco-corte"></div>
+    <br><br><br>
+  </div>
+
+  <script>
+    // Define a data atual como padrão
+    document.getElementById('data').valueAsDate = new Date();
+
+    function imprimir() {
+      const solicitante = document.getElementById('solicitante').value;
+      const modelo = document.getElementById('modelo').value;
+      const dataVal = document.getElementById('data').value;
+      const quantidade = document.getElementById('quantidade').value;
+      const aus = document.getElementById('aus').value;
+
+      if (!solicitante || !modelo || !dataVal || !quantidade || !aus) {
+        alert('Por favor, preencha todos os campos antes de imprimir.');
+        return;
+      }
+
+      const [ano, mes, dia] = dataVal.split('-');
+
+      document.getElementById('pSolicitante').innerText = solicitante;
+      document.getElementById('pModelo').innerText = modelo;
+      document.getElementById('pData').innerText = `${dia}/${mes}/${ano}`;
+      document.getElementById('pQuantidade').innerText = quantidade + ' un';
+      document.getElementById('pAus').innerText = aus;
+
+      window.print();
+    }
+  </script>
+</body>
+</html>

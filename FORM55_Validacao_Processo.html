@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FORM 55 - Validação de Processo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; padding: 0; }
+      .container-form { shadow: none; border: none; width: 100%; max-width: 100%; }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 p-4 min-h-screen">
+
+  <div class="max-w-5xl mx-auto mb-4 p-4 bg-white rounded shadow flex justify-between items-center no-print">
+    <h1 class="text-xl font-bold text-gray-800">Preenchimento de Formulário (FORM 55)</h1>
+    <div class="space-x-2">
+      <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium shadow">
+        🖨️ Imprimir
+      </button>
+      <button onclick="gerarPDF()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium shadow">
+        📄 Salvar em PDF
+      </button>
+    </div>
+  </div>
+
+  <div id="formulario" class="container-form max-w-5xl mx-auto bg-white p-6 rounded shadow border border-gray-300 text-sm">
+    
+    <div class="flex justify-between items-center border-b-2 border-gray-800 pb-3 mb-4">
+      <div>
+        <h2 class="font-bold text-lg text-blue-900">CARDNET</h2>
+        <h3 class="font-bold text-md uppercase">Validação de Processo</h3>
+      </div>
+      <div class="text-right">
+        <span class="block font-semibold">FORM 55 - Rev.08</span>
+        <span class="text-xs text-gray-600">Data: <input type="date" value="2026-06-03" class="border rounded px-1"></span>
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <h4 class="font-bold bg-gray-200 p-1 pl-2 mb-2 border-l-4 border-blue-900">1. Informações do Lote</h4>
+      
+      <div class="flex gap-6 mb-3">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="tipo_lote" class="w-4 h-4"> Produção Assistida
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="tipo_lote" class="w-4 h-4"> Operação Diária
+        </label>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+        <div>
+          <label class="block text-xs font-semibold">CLIENTE:</label>
+          <input type="text" class="w-full border rounded p-1 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold">OS:</label>
+          <input type="text" class="w-full border rounded p-1 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold">Data Inicial:</label>
+          <input type="date" class="w-full border rounded p-1 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold">Data Final:</label>
+          <input type="date" class="w-full border rounded p-1 text-sm">
+        </div>
+      </div>
+
+      <table class="w-full border-collapse border border-gray-300 mb-2">
+        <thead>
+          <tr class="bg-gray-100 text-xs">
+            <th class="border border-gray-300 p-1">Máquina</th>
+            <th class="border border-gray-300 p-1">Mod. Cartão</th>
+            <th class="border border-gray-300 p-1">Caixas</th>
+            <th class="border border-gray-300 p-1">Qtd. Prod.</th>
+            <th class="border border-gray-300 p-1">Operador</th>
+          </tr>
+        </thead>
+        <tbody id="linhas-maquina">
+          <tr>
+            <td class="border p-1"><input type="text" class="w-full border-none focus:outline-none"></td>
+            <td class="border p-1"><input type="text" class="w-full border-none focus:outline-none"></td>
+            <td class="border p-1"><input type="text" class="w-full border-none focus:outline-none"></td>
+            <td class="border p-1"><input type="number" class="w-full border-none focus:outline-none"></td>
+            <td class="border p-1"><input type="text" class="w-full border-none focus:outline-none"></td>
+          </tr>
+        </tbody>
+      </table>
+      <button onclick="adicionarLinhaMaquina()" class="text-xs bg-gray-200 hover:bg-gray-300 p-1 rounded no-print">+ Adicionar Linha</button>
+    </div>
+
+    <div class="mb-6">
+      <h4 class="font-bold bg-gray-200 p-1 pl-2 mb-2 border-l-4 border-blue-900">2. Etapas de Validação Personalização</h4>
+      
+      <table class="w-full border-collapse border border-gray-300 text-xs mb-4">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="border p-1 w-1/5">Processo</th>
+            <th class="border p-1 w-1/6">Status</th>
+            <th class="border p-1">Descrição</th>
+            <th class="border p-1 w-1/4">Observação / Validação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="border p-1 font-semibold"><input type="checkbox"> TERMOGRAFIA</td>
+            <td class="border p-1">
+              <select class="w-full border rounded p-1">
+                <option value="">Selecione...</option>
+                <option value="APROVADO">APROVADO</option>
+                <option value="REPROVADO">REPROVADO</option>
+              </select>
+            </td>
+            <td class="border p-1 text-gray-600">Conferência do layout carregado e impresso, falhas na impressão - Riscos, falhas e divergências.</td>
+            <td class="border p-1">
+              <input type="text" placeholder="Caixas Validadas" class="w-full border mb-1 p-1">
+              <input type="text" placeholder="Responsável" class="w-full border p-1">
+            </td>
+          </tr>
+          <tr>
+            <td class="border p-1 font-semibold"><input type="checkbox"> TARJA MAGNÉTICA / ID</td>
+            <td class="border p-1">
+              <select class="w-full border rounded p-1">
+                <option value="">Selecione...</option>
+                <option value="APROVADO">APROVADO</option>
+                <option value="REPROVADO">REPROVADO</option>
+              </select>
+            </td>
+            <td class="border p-1 text-gray-600">Conferência e leitura de dados de tarja ou leitura de códigos de Cartão de ID.</td>
+            <td class="border p-1">
+              <input type="text" placeholder="Caixas Validadas" class="w-full border mb-1 p-1">
+              <input type="text" placeholder="Responsável" class="w-full border p-1">
+            </td>
+          </tr>
+          <tr>
+            <td class="border p-1 font-semibold"><input type="checkbox"> CHIP (CONTATO / CONTACTLESS)</td>
+            <td class="border p-1">
+              <select class="w-full border rounded p-1">
+                <option value="">Selecione...</option>
+                <option value="APROVADO">APROVADO</option>
+                <option value="REPROVADO">REPROVADO</option>
+              </select>
+            </td>
+            <td class="border p-1 text-gray-600">Leitura elétrica/RF, conferência de ATR/UID e dados de personalização interna.</td>
+            <td class="border p-1">
+              <input type="text" placeholder="Caixas Validadas" class="w-full border mb-1 p-1">
+              <input type="text" placeholder="Responsável" class="w-full border p-1">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="border rounded p-3 bg-blue-50 border-blue-200 mb-4">
+        <div class="flex justify-between items-center border-b border-blue-200 pb-2 mb-3">
+          <h5 class="font-bold text-xs text-blue-900 uppercase">
+            🔍 Teste de Leitura (Tarja / ID / Barcode)
+          </h5>
+          <div class="flex gap-4 text-xs font-semibold">
+            <label class="flex items-center gap-1 cursor-pointer">
+              <input type="radio" name="tipo_validacao" value="tarja" checked onclick="alternarModoValidacao('tarja')">
+              Tarja Magnética
+            </label>
+            <label class="flex items-center gap-1 cursor-pointer">
+              <input type="radio" name="tipo_validacao" value="id" onclick="alternarModoValidacao('id')">
+              Cartão de ID / Crachá
+            </label>
+          </div>
+        </div>
+        
+        <div id="painel-tarja">
+          <div class="mb-3">
+            <label class="block font-semibold text-xs text-gray-700 mb-1">
+              Passe o cartão na leitora magnética:
+            </label>
+            <div class="flex gap-2">
+              <input type="text" id="campo-tarja" placeholder="Passe a tarja magnética no leitor..." 
+                     class="w-full border-2 border-blue-400 rounded p-2 text-sm font-mono focus:bg-white focus:outline-none"
+                     onchange="processarTarja()">
+              <button type="button" onclick="processarTarja()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs rounded font-bold no-print">
+                Registrar Leitura
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs mb-1">
+            <div class="bg-white p-2 border rounded">
+              <label class="font-bold block text-gray-700">Trilha 1 (IATA):</label>
+              <input type="text" id="trilha1" placeholder="Não lido" class="w-full font-mono text-xs border-none bg-transparent" readonly>
+            </div>
+            <div class="bg-white p-2 border rounded">
+              <label class="font-bold block text-gray-700">Trilha 2 (ABA):</label>
+              <input type="text" id="trilha2" placeholder="Não lido" class="w-full font-mono text-xs border-none bg-transparent" readonly>
+            </div>
+            <div class="bg-white p-2 border rounded">
+              <label class="font-bold block text-gray-700">Trilha 3 (THRIFT):</label>
+              <input type="text" id="trilha3" placeholder="Não lido" class="w-full font-mono text-xs border-none bg-transparent" readonly>
+            </div>
+          </div>
+        </div>
+
+        <div id="painel-id" class="hidden">
+          <div class="mb-3">
+            <label class="block font-semibold text-xs text-gray-700 mb-1">
+              Bipe o Código de Barras / QR Code ou digite os dados do Cartão de ID:
+            </label>
+            <div class="flex gap-2">
+              <input type="text" id="campo-id" placeholder="Escaneie o QR Code / Código de Barras do Cartão de ID..." 
+                     class="w-full border-2 border-blue-400 rounded p-2 text-sm font-mono focus:bg-white focus:outline-none"
+                     onchange="processarID()">
+              <button type="button" onclick="processarID()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs rounded font-bold no-print">
+                Registrar ID
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs mb-1">
+            <div class="bg-white p-2 border rounded">
+              <label class="font-bold block text-gray-700">Número de Identificação / ID:</label>
+              <input type="text" id="id-numero" placeholder="Aguardando leitura..." class="w-full font-mono text-xs border-none bg-transparent">
+            </div>
+            <div class="bg-white p-2 border rounded">
+              <label class="font-bold block text-gray-700">Tipo de Código Lido:</label>
+              <select id="id-tipo-codigo" class="w-full border-none bg-transparent text-xs font-semibold">
+                <option value="QR Code / Barcode">QR Code / Barcode</option>
+                <option value="OCR">OCR (Texto Impresso)</option>
+                <option value="RFID 125kHz">Proximidade / RFID (125kHz)</option>
+              </select>
+            </div>
+            <div class="bg-white p-2 border rounded">
+              <label class="font-bold block text-gray-700">Status da Leitura de ID:</label>
+              <select id="id-status" class="w-full border-none bg-transparent text-xs font-bold text-gray-800">
+                <option value="OK">CONFERE (OK)</option>
+                <option value="NOK">DIVERGENTE (NOK)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="border rounded p-3 bg-green-50 border-green-200 mb-4">
+        <h5 class="font-bold text-xs text-green-900 mb-2 uppercase border-b border-green-200 pb-1">
+          🛡️ Validação e Passagem de Cartões com Chip (Contato / Contactless)
+        </h5>
+        
+        <div class="mb-3">
+          <label class="block font-semibold text-xs text-gray-700 mb-1">
+            Aproxime ou Insira o Cartão no Leitor Smartcard / NFC:
+          </label>
+          <div class="flex gap-2">
+            <input type="text" id="campo-chip" placeholder="Aproxime/Insira o cartão com chip..." 
+                   class="w-full border-2 border-green-500 rounded p-2 text-sm font-mono focus:bg-white focus:outline-none"
+                   onchange="processarChip()">
+            <button type="button" onclick="processarChip()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs rounded font-bold no-print">
+              Registrar Chip
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-2 text-xs mb-3">
+          <div>
+            <label class="block font-semibold">Tipo do Chip:</label>
+            <select id="chip-tipo" class="w-full border rounded p-1">
+              <option value="Contato">Contato (ISO 7816)</option>
+              <option value="Contactless">Contactless (ISO 14443 / NFC)</option>
+              <option value="Dual Interface">Dual Interface (Ambos)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold">UID / Chip ID:</label>
+            <input type="text" id="chip-uid" placeholder="Ex: 04:A2:3B:C1" class="w-full border rounded p-1 font-mono text-xs">
+          </div>
+          <div>
+            <label class="block font-semibold">Leitura ATR / Resposta:</label>
+            <input type="text" id="chip-atr" placeholder="Ex: 3B 68 00 00..." class="w-full border rounded p-1 font-mono text-xs">
+          </div>
+          <div>
+            <label class="block font-semibold">Status do Teste:</label>
+            <select id="chip-status" class="w-full border rounded p-1 font-bold text-gray-800">
+              <option value="OK">APROVADO (OK)</option>
+              <option value="NOK">REPROVADO (NOK)</option>
+            </select>
+          </div>
+        </div>
+
+        <table class="w-full border-collapse border border-gray-300 text-xs bg-white">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="border p-1 text-left">Verificação do Chip</th>
+              <th class="border p-1 text-center w-24">Resultado</th>
+              <th class="border p-1 text-left">Observações Técnicas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="border p-1 font-medium">Comunicação Elétrica / RF</td>
+              <td class="border p-1 text-center">
+                <select class="w-full border rounded"><option>OK</option><option>NOK</option></select>
+              </td>
+              <td class="border p-1"><input type="text" placeholder="Sem falha na inicialização do chip" class="w-full border-none"></td>
+            </tr>
+            <tr>
+              <td class="border p-1 font-medium">Validação de Aplicação / Perfil (EMV / Mifare / Outro)</td>
+              <td class="border p-1 text-center">
+                <select class="w-full border rounded"><option>OK</option><option>NOK</option></select>
+              </td>
+              <td class="border p-1"><input type="text" placeholder="Aplicações instaladas corretamente" class="w-full border-none"></td>
+            </tr>
+            <tr>
+              <td class="border p-1 font-medium">Inspeção Física do Módulo (Posicionamento/Aderência)</td>
+              <td class="border p-1 text-center">
+                <select class="w-full border rounded"><option>OK</option><option>NOK</option></select>
+              </td>
+              <td class="border p-1"><input type="text" placeholder="Sem resina exposta ou módulo desalinhado" class="w-full border-none"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="border rounded p-3 bg-gray-50 border-gray-300">
+        <div class="flex justify-between items-center mb-2">
+          <h6 class="font-bold text-xs text-gray-800 uppercase">📋 Histórico Geral de Passagens (Tarja, ID e Chip)</h6>
+          <button type="button" onclick="limparHistorico()" class="text-[10px] bg-red-100 hover:bg-red-200 text-red-700 px-2 py-0.5 rounded border border-red-300 no-print">Limpar Histórico</button>
+        </div>
+        <table class="w-full border-collapse border border-gray-300 text-xs bg-white">
+          <thead>
+            <tr class="bg-gray-100 text-gray-700">
+              <th class="border p-1 text-center w-12">#</th>
+              <th class="border p-1 text-center w-20">Hora</th>
+              <th class="border p-1 text-center w-32">Tecnologia / Tipo</th>
+              <th class="border p-1 text-left">Dados Capturados / UID / Trilhas</th>
+              <th class="border p-1 text-center w-20">Status</th>
+            </tr>
+          </thead>
+          <tbody id="historico-leituras">
+            <tr id="linha-vazia">
+              <td colspan="5" class="border p-2 text-center text-gray-400 italic">Nenhum cartão registrado até o momento. Passe ou insira o cartão nos campos acima.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <div class="mb-4">
+      <h4 class="font-bold bg-gray-200 p-1 pl-2 mb-2 border-l-4 border-blue-900">3. Etapas de Validação Manuseio / Matching</h4>
+      
+      <div class="space-y-1 mb-3 text-xs">
+        <label class="flex items-center gap-2"><input type="checkbox"> Verificação de modelos de envelopes, carta-berço e cartões / Matching.</label>
+        <label class="flex items-center gap-2"><input type="checkbox"> Inspeção Visual / Conferência de ID / Matching.</label>
+        <label class="flex items-center gap-2"><input type="checkbox"> Manuseio Manual / sem Matching.</label>
+      </div>
+
+      <table class="w-full border-collapse border border-gray-300 text-xs">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="border p-1">Processo</th>
+            <th class="border p-1">Status / Datas</th>
+            <th class="border p-1">Caixas Prod. e Validadas</th>
+            <th class="border p-1">Qtd. Prod.</th>
+            <th class="border p-1">Responsável</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="border p-1 font-semibold">MANUSEIO / MATCHING</td>
+            <td class="border p-1">
+              <select class="w-full border mb-1"><option>APROVADO</option><option>REPROVADO</option></select>
+              <div class="text-[10px]">Ini: <input type="date" class="border"></div>
+              <div class="text-[10px]">Fim: <input type="date" class="border"></div>
+            </td>
+            <td class="border p-1"><input type="text" class="w-full border-none"></td>
+            <td class="border p-1"><input type="number" class="w-full border-none"></td>
+            <td class="border p-1"><input type="text" class="w-full border-none"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 border-t pt-2 text-[10px] text-gray-500">
+      <strong>Nota:</strong> Frequência e descrição de realização dos testes serão realizadas conforme estabelecido no PL-30 - Plano de Controle de Qualidade.
+    </div>
+
+  </div>
+
+  <script>
+    let contadorLeituras = 0;
+
+    function adicionarLinhaMaquina() {
+      const tbody = document.getElementById('linhas-maquina');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="border p-1"><input type="text" class="w-full border-none focus:outline-none"></td>
+        <td class="border p-1"><input type="text" class="w-full border-none focus:outline-none"></td>
+        <td class="border p-1"><input type="text" class="w-full border-none focus:outline-none"></td>
+        <td class="border p-1"><input type="number" class="w-full border-none focus:outline-none"></td>
+        <td class="border p-1"><input type="text" class="w-full border-none focus:outline-none"></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    function alternarModoValidacao(modo) {
+      const painelTarja = document.getElementById('painel-tarja');
+      const painelID = document.getElementById('painel-id');
+
+      if (modo === 'tarja') {
+        painelTarja.classList.remove('hidden');
+        painelID.classList.add('hidden');
+      } else {
+        painelTarja.classList.add('hidden');
+        painelID.classList.remove('hidden');
+      }
+    }
+
+    // Processamento e registro da Tarja Magnética
+    function processarTarja() {
+      const campo = document.getElementById('campo-tarja');
+      const conteudo = campo.value.trim();
+      if (!conteudo) return;
+
+      const partes = conteudo.split(';');
+      if (partes[0]) document.getElementById('trilha1').value = partes[0];
+      if (partes[1]) document.getElementById('trilha2').value = ';' + partes[1];
+      else document.getElementById('trilha2').value = 'Lido / OK';
+      document.getElementById('trilha3').value = partes[2] ? ';' + partes[2] : 'N/A';
+
+      adicionarAoHistorico('Tarja Magnética', conteudo, 'OK');
+
+      campo.value = '';
+      campo.focus();
+    }
+
+    // Processamento e registro do Cartão de ID
+    function processarID() {
+      const campo = document.getElementById('campo-id');
+      const conteudo = campo.value.trim();
+      if (!conteudo) return;
+
+      document.getElementById('id-numero').value = conteudo;
+      const tipo = document.getElementById('id-tipo-codigo').value;
+      const status = document.getElementById('id-status').value;
+
+      adicionarAoHistorico(`Cartão ID (${tipo})`, conteudo, status);
+
+      campo.value = '';
+      campo.focus();
+    }
+
+    // Processamento e registro do Cartão com Chip
+    function processarChip() {
+      const campo = document.getElementById('campo-chip');
+      const conteudo = campo.value.trim();
+      if (!conteudo) return;
+
+      const tipoChip = document.getElementById('chip-tipo').value;
+      const statusChip = document.getElementById('chip-status').value;
+
+      // Preenche os campos informativos do chip se aplicável
+      if (conteudo.includes(':') || conteudo.length <= 14) {
+        document.getElementById('chip-uid').value = conteudo;
+      } else {
+        document.getElementById('chip-atr').value = conteudo;
+      }
+
+      adicionarAoHistorico(`Chip (${tipoChip})`, conteudo, statusChip);
+
+      campo.value = '';
+      campo.focus();
+    }
+
+    // Função para incluir qualquer tipo de leitura no histórico unificado
+    function adicionarAoHistorico(tipo, dados, status) {
+      const tbody = document.getElementById('historico-leituras');
+      const linhaVazia = document.getElementById('linha-vazia');
+      
+      if (linhaVazia) {
+        linhaVazia.remove();
+      }
+
+      contadorLeituras++;
+      const agora = new Date();
+      const horaStr = agora.toLocaleTimeString('pt-BR');
+
+      const tr = document.createElement('tr');
+      const corStatus = status === 'OK' ? 'text-green-700 font-bold' : 'text-red-600 font-bold';
+
+      tr.innerHTML = `
+        <td class="border p-1 text-center font-bold text-gray-600">${contadorLeituras}</td>
+        <td class="border p-1 text-center text-gray-500">${horaStr}</td>
+        <td class="border p-1 text-center font-medium">${tipo}</td>
+        <td class="border p-1 font-mono text-[11px] break-all">${dados}</td>
+        <td class="border p-1 text-center ${corStatus}">${status}</td>
+      `;
+
+      tbody.appendChild(tr);
+    }
+
+    function limparHistorico() {
+      const tbody = document.getElementById('historico-leituras');
+      tbody.innerHTML = `
+        <tr id="linha-vazia">
+          <td colspan="5" class="border p-2 text-center text-gray-400 italic">Nenhum cartão registrado até o momento. Passe ou insira o cartão nos campos acima.</td>
+        </tr>
+      `;
+      contadorLeituras = 0;
+    }
+
+    function gerarPDF() {
+      const elemento = document.getElementById('formulario');
+      const opcoes = {
+        margin:       [5, 5, 5, 5],
+        filename:     'FORM55_Validacao_Processo.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
+
+      html2pdf().set(opcoes).from(elemento).save().then(() => {
+        document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consolidador de Cartões - Cardnet</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h2 { color: #333; margin-bottom: 20px; }
+        input[type="file"] { display: none; }
+        .btn-upload {
+            background-color: #2196F3;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        .btn-upload:hover { background-color: #0b7dda; }
+        #resultado {
+            margin-top: 25px;
+            text-align: left;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+        .secao-total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .secao-clientes {
+            margin-top: 15px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .cliente-linha {
+            font-size: 15px;
+            color: #333;
+            margin: 8px 0;
+            padding: 8px;
+            background: #fff;
+            border-left: 4px solid #2196F3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .cliente-nome { font-weight: bold; color: #333; }
+        .cliente-qtd { color: #1976D2; font-weight: bold; }
+        .arquivo-erro {
+            font-size: 12px;
+            color: red;
+            margin-top: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Consolidador de Cartões por Cliente</h2>
+    
+    <label for="file-input" class="btn-upload">Selecionar Relatórios PDF</label>
+    <input type="file" id="file-input" multiple accept=".pdf">
+
+    <div id="resultado">
+        <div class="secao-total" id="texto-total-geral">Total Geral: 0 cartões</div>
+        <h3>Totais por Cliente:</h3>
+        <div class="secao-clientes" id="lista-clientes"></div>
+        <div id="lista-erros"></div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('file-input').addEventListener('change', async function(event) {
+        const arquivos = event.target.files;
+        if (arquivos.length === 0) return;
+
+        let totaisPorCliente = {};
+        let totalGeral = 0;
+        let listaErros = [];
+
+        const regexTotal = /total\s+de\s+cart[õo]es\s*[:]\s*([\d\.\,]+)/gi;
+
+        const divResultado = document.getElementById('resultado');
+        const txtTotalGeral = document.getElementById('texto-total-geral');
+        const divListaClientes = document.getElementById('lista-clientes');
+        const divListaErros = document.getElementById('lista-erros');
+
+        divResultado.style.display = 'block';
+        divListaClientes.innerHTML = 'Processando arquivos...';
+        divListaErros.innerHTML = '';
+        txtTotalGeral.innerText = 'Calculando...';
+
+        for (let arquivo of arquivos) {
+            let somaArquivo = 0;
+            let clienteDoArquivo = "Cliente Não Identificado";
+
+            try {
+                const arrayBuffer = await arquivo.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+                if (pdf.numPages > 0) {
+                    const primeiraPagina = await pdf.getPage(1);
+                    const contentPag1 = await primeiraPagina.getTextContent();
+                    
+                    let itensTexto = contentPag1.items.map(item => item.str.trim()).filter(text => text.length > 0);
+                    
+                    // Procura a palavra "Produção" ou "Producao"
+                    let indiceProducao = itensTexto.findIndex(t => t.toLowerCase() === 'produção' || t.toLowerCase() === 'producao');
+                    
+                    if (indiceProducao > 0) {
+                        // Olha os itens logo antes de "Produção" para achar um texto que não seja número puro
+                        for (let k = indiceProducao - 1; k >= 0; k--) {
+                            let textoCandidato = itensTexto[k];
+                            // Ignora se for número puro (código de barras) ou palavras vazias/CARDNET
+                            if (textoCandidato && 
+                                textoCandidato.toUpperCase() !== 'CARDNET' && 
+                                !/^\d+$/.test(textoCandidato)) {
+                                clienteDoArquivo = textoCandidato;
+                                break;
+                            }
+                        }
+                    } else {
+                        // Varredura geral filtrando números puros
+                        for (let t of itensTexto) {
+                            if (t.toUpperCase() !== 'CARDNET' && 
+                                t.toLowerCase() !== 'produção' && 
+                                t.toLowerCase() !== 'producao' && 
+                                !t.includes('OS') && 
+                                !t.includes('/') && 
+                                !t.includes(':') && 
+                                !/^\d+$/.test(t) && 
+                                t.length > 3) {
+                                clienteDoArquivo = t;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Soma o total de cartões em todas as páginas do PDF
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const pagina = await pdf.getPage(i);
+                    const conteudoTextual = await pagina.getTextContent();
+                    let textoPagina = conteudoTextual.items.map(item => item.str).join(' ');
+                    textoPagina = textoPagina.replace(/\s+/g, ' ');
+
+                    let match;
+                    while ((match = regexTotal.exec(textoPagina)) !== null) {
+                        let numeroLimpo = match[1].replace(/[\.,]/g, '');
+                        let valor = parseInt(numeroLimpo, 10);
+                        if (!isNaN(valor)) {
+                            somaArquivo += valor;
+                        }
+                    }
+                }
+
+                totalGeral += somaArquivo;
+
+                let nomeClienteChave = clienteDoArquivo.toUpperCase();
+                if (totaisPorCliente[nomeClienteChave]) {
+                    totaisPorCliente[nomeClienteChave] += somaArquivo;
+                } else {
+                    totaisPorCliente[nomeClienteChave] = somaArquivo;
+                }
+
+            } catch (erro) {
+                listaErros.push(`Erro em ${arquivo.name}: ${erro.message}`);
+            }
+        }
+
+        txtTotalGeral.innerText = `Total Geral: ${totalGeral.toLocaleString('pt-BR')} cartões`;
+        
+        let htmlClientes = '';
+        const clientesOrdenados = Object.keys(totaisPorCliente).sort();
+        
+        for (let cliente of clientesOrdenados) {
+            htmlClientes += `
+                <div class="cliente-linha">
+                    <span class="cliente-nome">${cliente}</span>
+                    <span class="cliente-qtd">${totaisPorCliente[cliente].toLocaleString('pt-BR')} cartões</span>
+                </div>
+            `;
+        }
+        
+        divListaClientes.innerHTML = htmlClientes;
+
+        if (listaErros.length > 0) {
+            divListaErros.innerHTML = `<div class="arquivo-erro">${listaErros.join('<br>')}</div>`;
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recibo de Coleta - CARDNET</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background: #fff;
+      padding: 20px;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    /* Painel de entrada de código de barras */
+    .controls {
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .controls input {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #0056b3;
+      border-radius: 4px;
+    }
+
+    .controls button {
+      padding: 12px 20px;
+      font-size: 16px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .controls button.btn-print {
+      background-color: #0056b3;
+    }
+
+    /* Cabeçalho do Recibo */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid #000;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    .company-info h2 {
+      margin: 0;
+      font-size: 18px;
+      text-transform: uppercase;
+    }
+
+    .company-info p {
+      margin: 2px 0;
+      font-size: 11px;
+    }
+
+    .receipt-title {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .receipt-title p {
+      margin: 3px 0;
+      font-size: 11px;
+    }
+
+    /* Estilo do Seletor e do Campo Editável de Cliente */
+    .select-cliente-header, .input-cliente-header {
+      font-size: 15px;
+      font-weight: bold;
+      text-align: right;
+      text-align-last: right;
+      text-transform: uppercase;
+      border: 1px solid #0056b3;
+      border-radius: 3px;
+      padding: 3px 5px;
+      background-color: #fff;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      margin-bottom: 5px;
+    }
+
+    .input-cliente-header {
+      border: none;
+      border-bottom: 1px solid #ccc;
+      border-radius: 0;
+      width: 100%;
+    }
+
+    /* Informações de Controle */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      border: 1px solid #000;
+      padding: 8px;
+      margin-bottom: 15px;
+      font-size: 12px;
+    }
+
+    .info-grid div {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .info-grid input {
+      border: none;
+      border-bottom: 1px dotted #000;
+      width: 100%;
+      font-size: 12px;
+    }
+
+    /* Configuração de 3 Colunas para os Códigos */
+    .codigos-container {
+      column-count: 3;
+      column-gap: 15px;
+      border: 1px solid #000;
+      padding: 10px;
+      margin-bottom: 15px;
+    }
+
+    .item-codigo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      border-bottom: 1px dashed #ccc;
+      padding: 3px 0;
+      break-inside: avoid;
+    }
+
+    .item-codigo .num {
+      font-weight: bold;
+      margin-right: 4px;
+    }
+
+    .item-codigo .code {
+      font-family: monospace;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    /* Resumo e Totais */
+    .summary-bar {
+      display: flex;
+      justify-content: space-between;
+      border: 1px solid #000;
+      padding: 8px;
+      font-weight: bold;
+      background-color: #e9e9e9;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+
+    /* Seção do Responsável pela Coleta */
+    .footer-section {
+      border: 1px solid #000;
+      padding: 10px;
+      font-size: 12px;
+    }
+
+    .footer-section h4 {
+      margin: 0 0 10px 0;
+      text-transform: uppercase;
+    }
+
+    .signature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .signature-line {
+      border-top: 1px solid #000;
+      margin-top: 35px;
+      text-align: center;
+      font-size: 11px;
+    }
+
+    .btn-remove {
+      color: red;
+      cursor: pointer;
+      font-weight: bold;
+      border: none;
+      background: none;
+      font-size: 11px;
+    }
+
+    /* Estilos de Impressão */
+    @media print {
+      .controls, .btn-remove {
+        display: none !important;
+      }
+      body {
+        background: white;
+        padding: 0;
+      }
+      .container {
+        border: none;
+        box-shadow: none;
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+      }
+      .codigos-container {
+        column-count: 3;
+      }
+      /* Oculta seletores e mostra apenas o texto na impressão */
+      .select-cliente-header, .input-cliente-header {
+        border: none !important;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background: transparent;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="controls">
+    <input type="text" id="barcodeInput" placeholder="Bipe ou digite o código de barras aqui..." autofocus>
+    <button onclick="adicionarCodigo()">Adicionar</button>
+    <button class="btn-print" onclick="window.print()">Imprimir Recibo</button>
+  </div>
+
+  <div class="container">
+    
+    <div class="header">
+      <div class="company-info">
+        <h2>CARDNET</h2>
+        <p>Tecnologia em Cartões Ltda</p>
+        <p>CNPJ: 05.455.850/0001-06</p>
+        <p>Tel: (11) 2758-0376</p>
+        <p>R. Ângela Franchini, 15 - CEP: 09720-550</p>
+        <p>São Bernardo do Campo - SP</p>
+      </div>
+      <div class="receipt-title">
+        <select id="selectCliente" class="select-cliente-header" onchange="verificarOpcaoCliente()">
+          <option value="RECIBO UNIMED CAMPINAS">RECIBO UNIMED CAMPINAS</option>
+          <option value="RECIBO UNIMED PORTO ALEGRE">RECIBO UNIMED PORTO ALEGRE</option>
+          <option value="RECIBO UNIMED FLORIANÓPOLIS">RECIBO UNIMED FLORIANÓPOLIS</option>
+          <option value="NOVO">＋ INCLUIR NOVO CLIENTE NA LISTA</option>
+          <option value="OUTRO">✏️ DIGITAR SÓ PARA ESTE RECIBO</option>
+        </select>
+        
+        <input type="text" id="inputClienteOutro" class="input-cliente-header" style="display: none;" placeholder="DIGITE O NOME DO RECIBO" onblur="verificarInputVazio()">
+
+        <p><strong>RECIBO DE COLETA</strong></p>
+        <p>1ª Via Cliente</p>
+        <p><strong>Data/Hora:</strong> <span id="dataAtual"></span></p>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div><strong>Nº LACRE 1:</strong> <input type="text" placeholder="Digite o lacre 1"></div>
+      <div><strong>Nº LACRE 2:</strong> <input type="text" placeholder="Digite o lacre 2"></div>
+      <div><strong>QTD CAIXAS:</strong> <input type="number" value="1" style="width: 60px;"></div>
+      <div><strong>Total de Envios:</strong> <span id="totalEnvios">0</span></div>
+    </div>
+
+    <div class="codigos-container" id="listaCodigos">
+      </div>
+
+    <div class="summary-bar">
+      <span>TOTAL DE ITENS LIDOS:</span>
+      <span id="totalTabela">0</span>
+    </div>
+
+    <div class="footer-section">
+      <h4>Resp. Coleta</h4>
+      <div class="signature-grid">
+        <div>
+          <p><strong>Nome Completo:</strong> <input type="text" style="border:none; border-bottom:1px dotted #000; width:70%;"></p>
+          <p><strong>RG:</strong> <input type="text" style="border:none; border-bottom:1px dotted #000; width:70%;"></p>
+        </div>
+        <div>
+          <div class="signature-line">
+            Assinatura do Responsável
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const barcodeInput = document.getElementById('barcodeInput');
+    const listaCodigos = document.getElementById('listaCodigos');
+    const totalEnvios = document.getElementById('totalEnvios');
+    const totalTabela = document.getElementById('totalTabela');
+    const selectCliente = document.getElementById('selectCliente');
+    const inputClienteOutro = document.getElementById('inputClienteOutro');
+    let contador = 0;
+
+    // Data/Hora atual
+    function atualizarDataHora() {
+      const agora = new Date();
+      const dataFormatada = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR');
+      document.getElementById('dataAtual').innerText = dataFormatada;
+    }
+    atualizarDataHora();
+
+    // Controle da seleção e inclusão de novos clientes
+    function verificarOpcaoCliente() {
+      const valor = selectCliente.value;
+
+      if (valor === 'NOVO') {
+        const novoNome = prompt("Digite o nome do novo cliente (ex: UNIMED CURITIBA):");
+        if (novoNome && novoNome.trim() !== "") {
+          const textoCompleto = "RECIBO " + novoNome.trim().toUpperCase();
+          
+          // Criar nova opção no select
+          const novaOpcao = document.createElement('option');
+          novaOpcao.value = textoCompleto;
+          novaOpcao.innerText = textoCompleto;
+
+          // Inserir antes da opção "INCLUIR NOVO"
+          const opcaoNovo = selectCliente.querySelector('option[value="NOVO"]');
+          selectCliente.insertBefore(novaOpcao, opcaoNovo);
+
+          // Selecionar o recém criado
+          selectCliente.value = textoCompleto;
+        } else {
+          selectCliente.value = 'RECIBO UNIMED CAMPINAS';
+        }
+      } 
+      else if (valor === 'OUTRO') {
+        selectCliente.style.display = 'none';
+        inputClienteOutro.style.display = 'block';
+        inputClienteOutro.value = 'RECIBO ';
+        inputClienteOutro.focus();
+      }
+    }
+
+    function verificarInputVazio() {
+      if (inputClienteOutro.value.trim() === '' || inputClienteOutro.value.trim() === 'RECIBO') {
+        inputClienteOutro.style.display = 'none';
+        selectCliente.style.display = 'block';
+        selectCliente.value = 'RECIBO UNIMED CAMPINAS';
+      }
+    }
+
+    // Evento ao pressionar Enter no campo de código de barras
+    barcodeInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        adicionarCodigo();
+      }
+    });
+
+    // Adiciona código
+    function adicionarCodigo() {
+      const codigo = barcodeInput.value.trim();
+      if (codigo === "") return;
+
+      // Validação de duplicados
+      const codigosExistentes = Array.from(listaCodigos.querySelectorAll('.code'))
+                                     .map(el => el.innerText);
+
+      if (codigosExistentes.includes(codigo)) {
+        alert(`O código "${codigo}" já foi registrado!`);
+        barcodeInput.value = '';
+        barcodeInput.focus();
+        return;
+      }
+
+      contador++;
+
+      const div = document.createElement('div');
+      div.className = 'item-codigo';
+      div.id = `item-${contador}`;
+      div.innerHTML = `
+        <div>
+          <span class="num">${contador}.</span>
+          <span class="code">${codigo}</span>
+        </div>
+        <button class="btn-remove" onclick="removerCodigo(${contador})">X</button>
+      `;
+
+      listaCodigos.appendChild(div);
+      barcodeInput.value = '';
+      barcodeInput.focus();
+
+      atualizarTotais();
+    }
+
+    // Remove código
+    function removerCodigo(id) {
+      const elemento = document.getElementById(`item-${id}`);
+      if (elemento) {
+        elemento.remove();
+        reindexarLista();
+        atualizarTotais();
+      }
+    }
+
+    // Renumera a lista
+    function reindexarLista() {
+      const itens = listaCodigos.querySelectorAll('.item-codigo');
+      contador = 0;
+      itens.forEach((item) => {
+        contador++;
+        item.id = `item-${contador}`;
+        item.querySelector('.num').innerText = `${contador}.`;
+        item.querySelector('.btn-remove').setAttribute('onclick', `removerCodigo(${contador})`);
+      });
+    }
+
+    // Atualiza totais
+    function atualizarTotais() {
+      const total = listaCodigos.querySelectorAll('.item-codigo').length;
+      totalEnvios.innerText = total;
+      totalTabela.innerText = total;
+    }
+  </script>
+</body>
+</html>

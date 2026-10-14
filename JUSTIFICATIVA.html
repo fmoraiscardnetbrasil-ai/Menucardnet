@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Termo de Acerto de Ponto</title>
+  <style>
+    /* Configurações Globais e Impressão */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .folha-a4 {
+      width: 210mm;
+      height: 297mm;
+      background: #fff;
+      padding: 8mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    }
+
+    /* Estilo de cada formulário */
+    .formulario {
+      border: 1.5px solid #000;
+      padding: 8px;
+      font-size: 11px;
+      background: #fff;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .header .logo {
+      font-weight: bold;
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+
+    .header .titulo {
+      font-weight: bold;
+      font-size: 12px;
+      margin-top: 2px;
+      text-transform: uppercase;
+    }
+
+    /* Linhas e Campos de Entrada */
+    .linha-campo {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+      width: 100%;
+    }
+
+    .linha-campo label {
+      font-weight: bold;
+      margin-right: 5px;
+      white-space: nowrap;
+    }
+
+    input[type="text"], input[type="date"], input[type="time"] {
+      border: none;
+      border-bottom: 1px solid #000;
+      outline: none;
+      font-size: 11px;
+      padding: 2px 4px;
+      background: transparent;
+    }
+
+    input[type="text"] {
+      width: 100%;
+    }
+
+    input[type="date"], input[type="time"] {
+      font-family: inherit;
+    }
+
+    /* Tabela de Inclusão / Exclusão */
+    .tabela-ponto {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4px;
+    }
+
+    .tabela-ponto th, .tabela-ponto td {
+      border: 1px solid #000;
+      padding: 4px;
+      vertical-align: top;
+    }
+
+    .tabela-ponto th {
+      text-align: center;
+      font-size: 11px;
+      background-color: #f9f9f9;
+    }
+
+    .grid-horarios {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      row-gap: 3px;
+      align-items: center;
+    }
+
+    .grid-horarios label {
+      font-weight: bold;
+    }
+
+    /* Seção de Motivo e Documentos */
+    .motivo-container {
+      display: flex;
+      align-items: center;
+      margin-top: 2px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-top: 4px;
+    }
+
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    /* Rodapé com Assinaturas */
+    .rodape-assinaturas {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      padding: 0 10px;
+    }
+
+    .bloco-assinatura {
+      width: 45%;
+      text-align: center;
+    }
+
+    .linha-assinatura {
+      border-top: 1px solid #000;
+      margin-bottom: 3px;
+    }
+
+    .bloco-assinatura span {
+      font-weight: bold;
+      font-size: 10px;
+    }
+
+    /* Ajustes Exclusivos para Impressão */
+    @media print {
+      body {
+        background: none;
+        padding: 0;
+      }
+
+      .folha-a4 {
+        box-shadow: none;
+        width: 100%;
+        height: 100vh;
+        padding: 5mm;
+      }
+
+      /* Oculta os ícones padrões dos browsers na impressão para manter limpo */
+      input[type="date"]::-webkit-calendar-picker-indicator,
+      input[type="time"]::-webkit-calendar-picker-indicator {
+        display: none;
+        -webkit-appearance: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="folha-a4">
+
+    <div class="formulario">
+      <div class="header">
+        <div class="logo">CARDNET</div>
+        <div class="titulo">Termo de Acerto de Ponto - Justificativa</div>
+      </div>
+
+      <div class="linha-campo">
+        <label>Funcionário:</label>
+        <input type="text" style="flex: 2;">
+        <label style="margin-left: 15px;">Data:</label>
+        <input type="date" style="width: 130px;">
+      </div>
+
+      <table class="tabela-ponto">
+        <thead>
+          <tr>
+            <th style="width: 50%;">INCLUSÃO:</th>
+            <th style="width: 50%;">EXCLUSÃO:</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="grid-horarios">
+                <label>Entrada I :</label> <input type="time">
+                <label>Saída I :</label> <input type="time">
+                <label>Entrada II :</label> <input type="time">
+                <label>Saída II :</label> <input type="time">
+              </div>
+            </td>
+            <td>
+              <div class="grid-horarios">
+                <label>Entrada I :</label> <input type="time">
+                <label>Saída I :</label> <input type="time">
+                <label>Entrada II :</label> <input type="time">
+                <label>Saída II :</label> <input type="time">
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="motivo-container">
+                <label>MOTIVO:</label>
+                <input type="text">
+              </div>
+            </td>
+            <td>
+              <div class="motivo-container">
+                <label>MOTIVO:</label>
+                <input type="text">
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top: 5px;">
+        <strong>DOCUMENTO DE JUSTIFICATIVA:</strong>
+        <div class="checkbox-group">
+          <label><input type="checkbox"> Não</label>
+          <label><input type="checkbox"> Sim</label>
+          <span style="display: flex; flex: 1; align-items: center;">
+            Qual? <input type="text" style="margin-left: 5px;">
+          </span>
+        </div>
+      </div>
+
+      <div class="rodape-assinaturas">
+        <div class="bloco-assinatura">
+          <div class="linha-assinatura"></div>
+          <span>Autorizador (a)</span>
+        </div>
+        <div class="bloco-assinatura">
+          <div class="linha-assinatura"></div>
+          <span>Assinatura do Funcionário</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="formulario">
+      <div class="header">
+        <div class="logo">CARDNET</div>
+        <div class="titulo">Termo de Acerto de Ponto - Justificativa</div>
+      </div>
+
+      <div class="linha-campo">
+        <label>Funcionário:</label>
+        <input type="text" style="flex: 2;">
+        <label style="margin-left: 15px;">Data:</label>
+        <input type="date" style="width: 130px;">
+      </div>
+
+      <table class="tabela-ponto">
+        <thead>
+          <tr>
+            <th style="width: 50%;">INCLUSÃO:</th>
+            <th style="width: 50%;">EXCLUSÃO:</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="grid-horarios">
+                <label>Entrada I :</label> <input type="time">
+                <label>Saída I :</label> <input type="time">
+                <label>Entrada II :</label> <input type="time">
+                <label>Saída II :</label> <input type="time">
+              </div>
+            </td>
+            <td>
+              <div class="grid-horarios">
+                <label>Entrada I :</label> <input type="time">
+                <label>Saída I :</label> <input type="time">
+                <label>Entrada II :</label> <input type="time">
+                <label>Saída II :</label> <input type="time">
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="motivo-container">
+                <label>MOTIVO:</label>
+                <input type="text">
+              </div>
+            </td>
+            <td>
+              <div class="motivo-container">
+                <label>MOTIVO:</label>
+                <input type="text">
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top: 5px;">
+        <strong>DOCUMENTO DE JUSTIFICATIVA:</strong>
+        <div class="checkbox-group">
+          <label><input type="checkbox"> Não</label>
+          <label><input type="checkbox"> Sim</label>
+          <span style="display: flex; flex: 1; align-items: center;">
+            Qual? <input type="text" style="margin-left: 5px;">
+          </span>
+        </div>
+      </div>
+
+      <div class="rodape-assinaturas">
+        <div class="bloco-assinatura">
+          <div class="linha-assinatura"></div>
+          <span>Autorizador (a)</span>
+        </div>
+        <div class="bloco-assinatura">
+          <div class="linha-assinatura"></div>
+          <span>Assinatura do Funcionário</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="formulario">
+      <div class="header">
+        <div class="logo">CARDNET</div>
+        <div class="titulo">Termo de Acerto de Ponto - Justificativa</div>
+      </div>
+
+      <div class="linha-campo">
+        <label>Funcionário:</label>
+        <input type="text" style="flex: 2;">
+        <label style="margin-left: 15px;">Data:</label>
+        <input type="date" style="width: 130px;">
+      </div>
+
+      <table class="tabela-ponto">
+        <thead>
+          <tr>
+            <th style="width: 50%;">INCLUSÃO:</th>
+            <th style="width: 50%;">EXCLUSÃO:</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="grid-horarios">
+                <label>Entrada I :</label> <input type="time">
+                <label>Saída I :</label> <input type="time">
+                <label>Entrada II :</label> <input type="time">
+                <label>Saída II :</label> <input type="time">
+              </div>
+            </td>
+            <td>
+              <div class="grid-horarios">
+                <label>Entrada I :</label> <input type="time">
+                <label>Saída I :</label> <input type="time">
+                <label>Entrada II :</label> <input type="time">
+                <label>Saída II :</label> <input type="time">
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="motivo-container">
+                <label>MOTIVO:</label>
+                <input type="text">
+              </div>
+            </td>
+            <td>
+              <div class="motivo-container">
+                <label>MOTIVO:</label>
+                <input type="text">
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top: 5px;">
+        <strong>DOCUMENTO DE JUSTIFICATIVA:</strong>
+        <div class="checkbox-group">
+          <label><input type="checkbox"> Não</label>
+          <label><input type="checkbox"> Sim</label>
+          <span style="display: flex; flex: 1; align-items: center;">
+            Qual? <input type="text" style="margin-left: 5px;">
+          </span>
+        </div>
+      </div>
+
+      <div class="rodape-assinaturas">
+        <div class="bloco-assinatura">
+          <div class="linha-assinatura"></div>
+          <span>Autorizador (a)</span>
+        </div>
+        <div class="bloco-assinatura">
+          <div class="linha-assinatura"></div>
+          <span>Assinatura do Funcionário</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

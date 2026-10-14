@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FORM 07 - REV.02 - Liberação de Acesso</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Inter, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      margin: 0;
+      padding: 30px 15px;
+      color: #334155;
+      background-color: #f1f5f9;
+    }
+    .form-container {
+      max-width: 820px;
+      margin: 0 auto;
+      border: 1px solid #e2e8f0;
+      padding: 35px 40px;
+      border-radius: 12px;
+      background-color: #ffffff;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    }
+    .header-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+      gap: 20px;
+    }
+    .header-logo-svg {
+      height: 48px;
+      width: auto;
+    }
+    .header-title {
+      text-align: right;
+      margin: 0;
+      color: #0f172a;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      flex: 1;
+    }
+    .row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+    .person-item {
+      background-color: #f8fafc;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 15px;
+      position: relative;
+    }
+    .field {
+      flex: 1;
+      min-width: 180px;
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    input[type="text"], input[type="date"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: #1e293b;
+      background-color: #ffffff;
+      transition: all 0.2s ease;
+    }
+    input[type="text"]:focus, input[type="date"]:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .checkbox-group {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      padding-top: 6px;
+    }
+    .checkbox-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.92rem;
+      color: #334155;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .checkbox-item input[type="radio"],
+    .checkbox-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #2563eb;
+      cursor: pointer;
+    }
+    .section-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #1e293b;
+      margin-top: 28px;
+      margin-bottom: 12px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .areas-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      background-color: #f8fafc;
+      padding: 18px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .alert-note {
+      margin-top: 28px;
+      padding: 14px 16px;
+      background-color: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      border-radius: 0 6px 6px 0;
+      color: #b45309;
+      font-weight: 600;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    
+    /* Botões */
+    .btn-container {
+      text-align: center;
+      margin-top: 30px;
+    }
+    .btn-save {
+      background-color: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 12px 28px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+      transition: all 0.2s ease;
+    }
+    .btn-save:hover {
+      background-color: #1d4ed8;
+      transform: translateY(-1px);
+    }
+    .btn-add {
+      background-color: #059669;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 15px;
+      transition: background-color 0.2s;
+    }
+    .btn-add:hover {
+      background-color: #047857;
+    }
+    .btn-remove {
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn-remove:hover {
+      background-color: #dc2626;
+    }
+
+    /* Otimização para Impressão / PDF */
+    @media print {
+      body { background-color: #ffffff; padding: 0; margin: 0; }
+      .form-container { border: none; box-shadow: none; padding: 0; max-width: 100%; }
+      .btn-container, .btn-add, .btn-remove { display: none !important; }
+      .person-item {
+        background-color: transparent;
+        padding: 0;
+        border: none;
+        margin-bottom: 10px;
+      }
+      input[type="text"], input[type="date"] {
+        border: none; 
+        border-bottom: 1px solid #94a3b8; 
+        border-radius: 0; 
+        padding: 4px 0; 
+        background-color: transparent;
+      }
+      .areas-grid { background-color: transparent; border: 1px solid #cbd5e1; }
+      .alert-note { background-color: #fef3c7; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="form-container">
+  <div class="header-container">
+    <svg class="header-logo-svg" viewBox="0 0 280 80" xmlns="http://www.w3.org/2000/svg">
+      <text x="0" y="55" font-family="'Segoe UI', sans-serif" font-weight="300" font-size="46" fill="#000000" letter-spacing="-1">CARD</text>
+      <text x="122" y="66" font-family="'Segoe UI', sans-serif" font-weight="300" font-size="68" fill="#F59E0B">N</text>
+      <text x="175" y="55" font-family="'Segoe UI', sans-serif" font-weight="300" font-size="46" fill="#F59E0B" letter-spacing="-1">ET</text>
+      <line x1="0" y1="72" x2="250" y2="72" stroke="#F59E0B" stroke-width="4" />
+    </svg>
+    <h1 class="header-title">FORM 07 - REV.02 - LIBERAÇÃO DE ACESSO - VISITANTES</h1>
+  </div>
+
+  <form id="accessForm">
+    
+    <div class="section-title">Pessoas Liberadas</div>
+    
+    <div id="peopleList">
+      <div class="person-item">
+        <div class="row">
+          <div class="field" style="flex: 2;">
+            <label>Nome Completo</label>
+            <input type="text" name="nome[]" placeholder="Digite o nome completo">
+          </div>
+          <div class="field" style="flex: 1;">
+            <label>RG/CPF</label>
+            <input type="text" name="rg_cpf[]" placeholder="000.000.000-00">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="btn-add" onclick="addPerson()">+ Adicionar Pessoa</button>
+
+    <div class="row">
+      <div class="field">
+        <label>Tipo de Acesso</label>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="radio" name="tipo_acesso" value="visitante"> Visitante</label>
+          <label class="checkbox-item"><input type="radio" name="tipo_acesso" value="colaborador"> Colaborador</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="data_de">Período de Acesso (De)</label>
+        <input type="date" id="data_de" name="data_de">
+      </div>
+      <div class="field">
+        <label for="data_ate">Período de Acesso (Até)</label>
+        <input type="date" id="data_ate" name="data_ate">
+      </div>
+      <div class="field">
+        <label for="horario">Horário ou Turno</label>
+        <input type="text" id="horario" name="horario" placeholder="Ex: 08:00 às 17:00">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="empresa">Empresa</label>
+        <input type="text" id="empresa" name="empresa" placeholder="Nome da empresa contratante/visitante">
+      </div>
+      <div class="field">
+        <label for="motivo">Motivo</label>
+        <input type="text" id="motivo" name="motivo" placeholder="Descreva o motivo da visita">
+      </div>
+    </div>
+
+    <div class="section-title">Áreas para Liberação</div>
+    <div class="areas-grid">
+      <label class="checkbox-item"><input type="checkbox" name="areas" value="recepcao"> Recepção</label>
+      <label class="checkbox-item"><input type="checkbox" name="areas" value="servidor_adm"> Servidor ADM</label>
+      <label class="checkbox-item"><input type="checkbox" name="areas" value="administrativo"> Administrativo/Sala de reunião</label>
+      <label class="checkbox-item"><input type="checkbox" name="areas" value="servidor_producao"> Servidor Produção</label>
+      <label class="checkbox-item"><input type="checkbox" name="areas" value="sala_seguranca"> Sala de segurança</label>
+      <label class="checkbox-item"><input type="checkbox" name="areas" value="fragmentadora"> Fragmentadora</label>
+      <label class="checkbox-item"><input type="checkbox" name="areas" value="producao"> Produção</label>
+      <label class="checkbox-item"><input type="checkbox" name="areas" value="cofre"> Cofre</label>
+      <label class="checkbox-item"><input type="checkbox" name="areas" value="engenharia"> Sala de engenharia</label>
+      <label class="checkbox-item"><input type="checkbox" name="areas" value="almoxarifado"> Almoxarifado</label>
+    </div>
+
+    <div class="section-title">Estacionamento</div>
+    <div class="row">
+      <div class="field">
+        <label>É necessária a utilização de estacionamento?</label>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="radio" name="estacionamento" value="sim"> Sim</label>
+          <label class="checkbox-item"><input type="radio" name="estacionamento" value="nao"> Não</label>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="veiculo_modelo">Modelo do Veículo</label>
+        <input type="text" id="veiculo_modelo" name="veiculo_modelo" placeholder="Ex: Gol / Prata">
+      </div>
+      <div class="field">
+        <label for="veiculo_placa">Placa</label>
+        <input type="text" id="veiculo_placa" name="veiculo_placa" placeholder="ABC-1234 / ABC1D23">
+      </div>
+    </div>
+
+    <div class="section-title">Equipamentos Eletrônicos</div>
+    <div class="row">
+      <div class="field">
+        <label>É necessária a utilização de algum tipo de equipamento eletrônico durante a visita?</label>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="radio" name="equipamentos_opcao" value="sim"> Sim</label>
+          <label class="checkbox-item"><input type="radio" name="equipamentos_opcao" value="nao"> Não</label>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="equipamentos_detalhe">Informar equipamento</label>
+        <input type="text" id="equipamentos_detalhe" name="equipamentos_detalhe" placeholder="Ex: Notebook Dell N° Série XYZ">
+      </div>
+    </div>
+
+    <div class="alert-note">
+      * Não é permitida a utilização de equipamentos eletrônicos nas dependências da empresa sem autorização da Gestão e Segurança.
+    </div>
+
+    <div class="btn-container">
+      <button type="button" class="btn-save" onclick="window.print()">Salvar em PDF</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  function addPerson() {
+    const container = document.getElementById('peopleList');
+    const personDiv = document.createElement('div');
+    personDiv.className = 'person-item';
+    personDiv.innerHTML = `
+      <div class="row">
+        <div class="field" style="flex: 2;">
+          <label>Nome Completo</label>
+          <input type="text" name="nome[]" placeholder="Digite o nome completo">
+        </div>
+        <div class="field" style="flex: 1;">
+          <label>RG/CPF</label>
+          <input type="text" name="rg_cpf[]" placeholder="000.000.000-00">
+        </div>
+        <button type="button" class="btn-remove" onclick="removePerson(this)">Remover</button>
+      </div>
+    `;
+    container.appendChild(personDiv);
+  }
+
+  function removePerson(button) {
+    const personItem = button.closest('.person-item');
+    personItem.remove();
+  }
+</script>
+
+</body>
+</html>
