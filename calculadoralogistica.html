@@ -4,8 +4,178 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CardNet - Calculadora de Logística</title>
+<style>
+  :root {
+    --primary: #0f172a;
+    --accent: #f59e0b;
+    --bg: #0b0f19;
+    --card-bg: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: #334155;
+    --success: #10b981;
+  }
 
-<link rel="stylesheet" href="style.css">
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 440px;
+  }
+
+  .logo {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .logo h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+  }
+
+  .logo span {
+    color: var(--accent);
+  }
+
+  .logo p {
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  input[type="number"] {
+    width: 100%;
+    padding: 12px 14px;
+    background: #0f172a;
+    border: 1px solid var(--border);
+    color: #fff;
+    border-radius: 6px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 16px;
+  }
+
+  input[type="number"]:focus {
+    border-color: var(--accent);
+  }
+
+  .botoes {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  button.calcular {
+    background-color: var(--accent);
+    color: #000;
+  }
+
+  button.calcular:hover {
+    background-color: #d97706;
+    color: #fff;
+  }
+
+  button.limpar {
+    background-color: #334155;
+    color: #fff;
+  }
+
+  button.limpar:hover {
+    background-color: #475569;
+  }
+
+  .resultado {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .item {
+    background: #0f172a;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .item span {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .item strong {
+    font-size: 20px;
+    color: var(--success);
+  }
+
+  .regras {
+    background: rgba(15, 23, 42, 0.5);
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px dashed var(--border);
+    text-align: center;
+  }
+
+  .regras p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 3px 0;
+  }
+</style>
 </head>
 
 <body>
@@ -13,55 +183,84 @@
 <div class="container">
 
     <div class="logo">
-        <!-- Coloque aqui sua logo -->
-        <img src="logo.png" alt="CardNet" id="logo">
-        <h1>CARDNET</h1>
+        <h1>CARD<span>NET</span></h1>
         <p>Calculadora de Logística</p>
     </div>
 
     <div class="card">
 
-        <label>Quantidade de Cartões</label>
-
-        <input
-            type="number"
-            id="quantidade"
-            placeholder="Digite a quantidade">
+        <label for="quantidade">Quantidade de Cartões</label>
+        <input type="number" id="quantidade" placeholder="Digite a quantidade" autofocus>
 
         <div class="botoes">
-            <button class="calcular" onclick="calcular()">
-                CALCULAR
-            </button>
-
-            <button class="limpar" onclick="limpar()">
-                LIMPAR
-            </button>
+            <button class="calcular" onclick="calcular()">CALCULAR</button>
+            <button class="limpar" onclick="limpar()">LIMPAR</button>
         </div>
 
         <div class="resultado">
-
             <div class="item">
-                <span>Peso</span>
+                <span>Peso Estimado</span>
                 <strong id="peso">0,00 kg</strong>
             </div>
-
             <div class="item">
                 <span>Volumes</span>
                 <strong id="volumes">0</strong>
             </div>
-
         </div>
 
         <div class="regras">
-            <p>500 cartões = 3 kg</p>
-            <p>5.000 cartões = 1 volume</p>
+            <p>📦 500 cartões = 3 kg</p>
+            <p>📦 5.000 cartões = 1 volume</p>
         </div>
 
     </div>
 
 </div>
 
-<script src="script.js"></script>
+<script>
+    // Permite calcular apertando a tecla Enter
+    document.getElementById('quantidade').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            calcular();
+        }
+    });
+
+    function calcular() {
+        const qtdInput = document.getElementById('quantidade');
+        const qtd = parseFloat(qtdInput.value);
+
+        if (isNaN(qtd) || qtd < 0) {
+            alert('Por favor, digite uma quantidade válida de cartões.');
+            qtdInput.focus();
+            return;
+        }
+
+        // Regra de peso: 500 cartões = 3 kg (Logo, cada cartão pesa 3 / 500 kg)
+        const pesoKg = (qtd * 3) / 500;
+
+        // Regra de volumes: 5.000 cartões = 1 volume (Se passar de 0, arredonda para cima ou usa fração exata)
+        // Usando Math.ceil para arredondar volumes cheios para cima, ou valor decimal caso prefira. 
+        // Aqui colocamos ceil para caixas/volumes físicos fechados:
+        let volumes = qtd / 5000;
+        if (volumes > 0 && volumes < 1) {
+            volumes = 1; // Mínimo de 1 volume se houver cartões
+        } else {
+            volumes = Math.ceil(volumes);
+        }
+        if (qtd === 0) volumes = 0;
+
+        // Exibe os resultados formatados
+        document.getElementById('peso').innerText = pesoKg.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' kg';
+        document.getElementById('volumes').innerText = volumes.toLocaleString('pt-BR');
+    }
+
+    function limpar() {
+        document.getElementById('quantidade').value = '';
+        document.getElementById('peso').innerText = '0,00 kg';
+        document.getElementById('volumes').innerText = '0';
+        document.getElementById('quantidade').focus();
+    }
+</script>
 
 </body>
 </html>
