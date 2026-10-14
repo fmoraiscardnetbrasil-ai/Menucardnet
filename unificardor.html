@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cardnet SP - Unificador de Processamento</title>
+  <style>
+    :root {
+      --primary: #0d2346;
+      --accent: #f59e0b;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 650px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .header {
+      background-color: var(--primary);
+      color: #ffffff;
+      padding: 28px 20px;
+    }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .header p {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+
+    .content {
+      padding: 30px 24px;
+    }
+
+    /* Área central de seleção */
+    .action-card {
+      border: 2px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 35px 20px;
+      background: #f8fafc;
+      transition: all 0.2s;
+      margin-bottom: 20px;
+    }
+
+    .action-card.has-folder {
+      border-color: var(--success);
+      background: #ecfdf5;
+    }
+
+    .action-card h3 {
+      font-size: 17px;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .action-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .btn-acao {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      box-shadow: 0 4px 6px rgba(13, 35, 70, 0.15);
+    }
+
+    .btn-acao:hover {
+      background-color: #163668;
+    }
+
+    .btn-acao:active {
+      transform: scale(0.98);
+    }
+
+    .btn-acao:disabled {
+      background-color: #94a3b8;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-processar {
+      background-color: #16a34a;
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .btn-processar:hover {
+      background-color: #15803d;
+    }
+
+    /* Logs e Status Centralizados */
+    .status-box {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: left;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .status-box.success {
+      background-color: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .status-box.warning {
+      background-color: #fffbeb;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    .log-area {
+      margin-top: 15px;
+      background: #0f172a;
+      color: #38bdf8;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      padding: 14px;
+      border-radius: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      display: none;
+      text-align: left;
+      white-space: pre-wrap;
+    }
+
+    .pasta-info {
+      font-weight: 600;
+      color: #059669;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>Cardnet SP - Unificador de Arquivos Unimed Porto Alegre</h1>
+      <p>Agrupamento automático de arquivos .txt por Layout</p>
+    </div>
+
+    <div class="content">
+      
+      <!-- Card Central de Ação -->
+      <div id="actionCard" class="action-card">
+        <h3>Passo 1: Selecionar a Pasta</h3>
+        <p>Escolha a pasta raiz <b>PROCESSADOS</b> no seu computador</p>
+        <button class="btn-acao" onclick="selecionarPasta()">📁 Selecionar Pasta</button>
+        <div id="infoPasta" class="pasta-info"></div>
+      </div>
+
+      <!-- Botão de Processar (Aparece após selecionar a pasta) -->
+      <button id="btnProcessar" class="btn-acao btn-processar" onclick="processarArquivos()">
+        🚀 Processar e Gerar Arquivos Unificados
+      </button>
+
+      <!-- Mensagens de Status Centralizadas -->
+      <div id="statusBox" class="status-box"></div>
+
+      <!-- Console de Logs Detalhado -->
+      <div id="logArea" class="log-area"></div>
+
+    </div>
+  </div>
+
+  <script>
+    let handlePastaGlobal = null;
+
+    const regras = {
+      "PADRÃO": ["111A", "JUST_111B","111B", "221A", "221C", "331A", "331B", "331C", "441C", "6331A", "6612A","JUST_221B","221B"],
+      "BRANCA": ["909A", "909B", "909C", "551A"],
+      "ODONTO": ["900", "901"],
+      "ODONTO_FIT": ["908"],
+      "SOS": ["906"],
+      "YARA": ["YARA_221BY", "221BY"],
+      "UNIFACIL_FLEX": ["881A"],
+      "UNIFACIL": ["441A", "441B"],
+      "FERJ": ["8001", "8002"],
+      "PLANO MEDICO": ["903"],
+      "UNIFACIL SANTA CASA": ["441S"],
+      "PADRÃO COL ADES": ["111C"]
+    };
+
+    let listaCodigosOrdenada = [];
+    for (const [nomeLayout, codigos] of Object.entries(regras)) {
+      for (const cod of codigos) {
+        listaCodigosOrdenada.push({ cod: cod.toUpperCase(), layout: nomeLayout });
+      }
+    }
+    listaCodigosOrdenada.sort((a, b) => b.cod.length - a.cod.length);
+
+    async function selecionarPasta() {
+      try {
+        handlePastaGlobal = await window.showDirectoryPicker();
+        
+        const actionCard = document.getElementById('actionCard');
+        actionCard.classList.add('has-folder');
+        
+        document.getElementById('infoPasta').innerText = `✅ Pasta selecionada: "${handlePastaGlobal.name}"`;
+        document.getElementById('btnProcessar').style.display = 'block';
+        
+        esconderStatus();
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error(err);
+          alert("Erro ao selecionar a pasta.");
+        }
+      }
+    }
+
+    function log(texto) {
+      const area = document.getElementById('logArea');
+      area.style.display = 'block';
+      area.innerText += texto + "\n";
+      area.scrollTop = area.scrollHeight;
+    }
+
+    function mostrarStatus(mensagem, tipo) {
+      const box = document.getElementById('statusBox');
+      box.style.display = 'block';
+      box.className = `status-box ${tipo}`;
+      box.innerHTML = mensagem;
+    }
+
+    function esconderStatus() {
+      const box = document.getElementById('statusBox');
+      box.style.display = 'none';
+      const area = document.getElementById('logArea');
+      area.style.display = 'none';
+      area.innerText = '';
+    }
+
+    async function processarArquivos() {
+      if (!handlePastaGlobal) return;
+
+      const btn = document.getElementById('btnProcessar');
+      btn.disabled = true;
+      btn.innerText = "Processando, aguarde...";
+      esconderStatus();
+      log("Iniciando varredura da pasta selecionada...");
+
+      let conteudoFinal = {};
+      Object.keys(regras).forEach(k => conteudoFinal[k] = []);
+      
+      let totalArquivosLidos = 0;
+      let totalLinhasLidas = 0;
+
+      try {
+        for await (const [nomeItem, handleItem] of handlePastaGlobal.entries()) {
+          if (handleItem.kind === 'directory') {
+            if (nomeItem.toLowerCase() === "arquivo de gravação" || nomeItem.toLowerCase() === "arquivo de gravacao") {
+              continue;
+            }
+
+            let pastaImpressaoHandle = null;
+            
+            for await (const [subNome, subHandle] of handleItem.entries()) {
+              if (subHandle.kind === 'directory' && subNome.toUpperCase() === "IMPRESSAO") {
+                pastaImpressaoHandle = subHandle;
+                break;
+              }
+            }
+
+            if (pastaImpressaoHandle) {
+              for await (const [arqNome, arqHandle] of pastaImpressaoHandle.entries()) {
+                if (arqHandle.kind === 'file' && arqNome.toLowerCase().endsWith('.txt')) {
+                  const nomeTratado = arqNome.toUpperCase().trim();
+                  let layoutAlvo = null;
+
+                  for (const itemRegra of listaCodigosOrdenada) {
+                    if (nomeTratado.includes(itemRegra.cod)) {
+                      layoutAlvo = itemRegra.layout;
+                      break;
+                    }
+                  }
+
+                  if (layoutAlvo) {
+                    try {
+                      const file = await arqHandle.getFile();
+                      const buffer = await file.arrayBuffer();
+                      const decoder = new TextDecoder('windows-1252');
+                      const texto = decoder.decode(buffer);
+                      
+                      let linhas = texto.split(/\r?\n/);
+                      if (linhas.length > 0 && linhas[linhas.length - 1] === "") {
+                        linhas.pop();
+                      }
+
+                      if (linhas.length > 0) {
+                        linhas.forEach(l => conteudoFinal[layoutAlvo].push(l + "\n"));
+                        totalLinhasLidas += linhas.length;
+                        totalArquivosLidos++;
+                        log(`[Cópia OK] '${nomeItem}' -> '${arqNome}' -> Layout: ${layoutAlvo} (${linhas.length} linhas)`);
+                      }
+                    } catch (e) {
+                      log(`[Erro] Falha ao ler '${arqNome}': ${e.message}`);
+                    }
+                  } else {
+                    log(`[Aviso] Nenhum código bateu com: '${arqNome}' (em '${nomeItem}')`);
+                  }
+                }
+              }
+            } else {
+              log(`[Aviso] Pasta 'IMPRESSAO' não encontrada em: '${nomeItem}'`);
+            }
+          }
+        }
+
+        if (totalArquivosLidos === 0) {
+          mostrarStatus("⚠️ Nenhum arquivo .txt compatível com as regras foi encontrado na pasta selecionada.", "warning");
+          btn.disabled = false;
+          btn.innerText = "🚀 Processar e Gerar Arquivos Unificados";
+          return;
+        }
+
+        log("\nGerando estrutura de pastas e arquivos unificados...");
+        
+        let pastaGravacaoHandle = await handlePastaGlobal.getDirectoryHandle("arquivo de gravação", { create: true });
+        let arquivosGerados = 0;
+
+        for (const [nomeLayout, linhas] of Object.entries(conteudoFinal)) {
+          if (linhas.length > 0) {
+            let pastaLayoutHandle = await pastaGravacaoHandle.getDirectoryHandle(nomeLayout, { create: true });
+            let nomeArquivoFinal = `LAYOUT_${nomeLayout}.txt`;
+            
+            let arquivoHandle = await pastaLayoutHandle.getFileHandle(nomeArquivoFinal, { create: true });
+            let writable = await arquivoHandle.createWritable();
+            
+            const blobData = new Blob(linhas, { type: 'text/plain;charset=windows-1252' });
+            await writable.write(blobData);
+            await writable.close();
+
+            log(`[Criado] arquivo de gravação/${nomeLayout}/${nomeArquivoFinal}`);
+            arquivosGerados++;
+          }
+        }
+
+        mostrarStatus(`
+          <strong>🎉 Processo Concluído com Sucesso!</strong><br><br>
+          • <b>${totalArquivosLidos}</b> arquivos .txt lidos.<br>
+          • <b>${totalLinhasLidas.toLocaleString('pt-BR')}</b> linhas somadas no total.<br>
+          • <b>${arquivosGerados}</b> arquivos unificados criados dentro da pasta <b>"arquivo de gravação"</b>.
+        `, "success");
+
+      } catch (err) {
+        console.error(err);
+        alert("Ocorreu um erro durante o processamento: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "🚀 Processar e Gerar Arquivos Unificados";
+      }
+    }
+  </script>
+</body>
+</html>
