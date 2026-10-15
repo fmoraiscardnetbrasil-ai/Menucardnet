@@ -279,22 +279,6 @@
       color: var(--text-muted);
     }
 
-    /* Área de Console / Output Interno para Utilitários */
-    .console-box {
-      background: #0f172a;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      font-family: monospace;
-      font-size: 12px;
-      color: #38bdf8;
-      height: 90px;
-      overflow-y: auto;
-      margin-top: 12px;
-      white-space: pre-wrap;
-      display: none;
-    }
-
     /* Modal / Janela Flutuante */
     .modal-overlay {
       position: fixed;
@@ -475,8 +459,8 @@
     <div class="section-title" id="titulo-formularios">Formulários de Controle & Qualidade</div>
     <div class="grid-cards" id="grid-formularios"></div>
 
-    <!-- SEÇÃO 4: AUTOMAÇÕES LOCAIS (SCRIPTS CONVERTIDOS) -->
-    <div class="section-title" id="titulo-automacoes">Automações de Arquivos e Pastas (Bat/Python)</div>
+    <!-- SEÇÃO 4: AUTOMAÇÕES LOCAIS -->
+    <div class="section-title" id="titulo-automacoes">Automações de Arquivos e Pastas</div>
     <div class="grid-cards" id="grid-automacoes"></div>
 
     <!-- SEÇÃO DINÂMICA (PERSONALIZADOS) -->
@@ -547,7 +531,7 @@
   </footer>
 
   <script>
-    // Módulos Padrão de Fábrica + Utilitários convertidos (com descrições completas)
+    // Módulos Padrão + Automações incorporadas
     const modulosPadrao = [
       { id: "m1", titulo: "Alinhamento Automático Campinas", desc: "Mapeamento dinâmico de posições e preenchimento de etiquetas.", url: "CAMPINAS_VERSÃO2.html", icone: "🎯", categoria: "producao" },
       { id: "m2", titulo: "Conciliador de AR (PDF x Excel)", desc: "Cruzamento automático de dados de rastreio e lotes.", url: "AR_REPETIDAS_CAMPINAS.html", icone: "📊", categoria: "producao" },
@@ -562,11 +546,12 @@
       { id: "m11", titulo: "Unificador Porto Alegre", desc: "Unificar arquivos de gravação da Unimed Porto Alegre.", url: "unificardor.html", icone: "📂", categoria: "producao" },
       { id: "m12", titulo: "Calculadora da Logistica", desc: "Com base dos envios calculadora faz o peso e o total de volumes conforme padrão estabelecido.", url: "calculadoralogistica.html", icone: "📦", categoria: "producao" },
       
-      // Utilitários Convertidos de Bat / Python integrados diretamente no Hub
+      // Utilitários de Automação
       { id: "ut1", titulo: "Unir Textos (.txt) Geral", desc: "Seleciona uma pasta de textos e une todos em um único arquivo de saída unificado.", url: "javascript:executarUnirTextos()", icone: "📄", categoria: "automacoes" },
-      { id: "ut2", titulo: "Unir Textos por Layout (1 a 10)", desc: "Varre a pasta e une automaticamente arquivos separados por sufixo de layout (_LAYOUT_1 a 10).", url: "javascript:executarUnirPorLayout()", icone: "📑", categoria: "automacoes" },
+      { id: "ut2", titulo: "Unir Textos por Layout (1 a 10)", desc: "Varre a pasta e une automaticamente arquivos separados por sufixo de layout.", url: "javascript:executarUnirPorLayout()", icone: "📑", categoria: "automacoes" },
       { id: "ut3", titulo: "Organizar PDFs (PF e PJ)", desc: "Separa arquivos PDF locais em subpastas dedicadas com base no prefixo (PF ou PJ).", url: "javascript:executarPfPj()", icone: "📁", categoria: "automacoes" },
-      { id: "ut4", titulo: "Separar PDFs e CSVs (PDF/ARQ)", desc: "Move automaticamente arquivos PDF para a subpasta PDF e arquivos CSV para a subpasta ARQ.", url: "javascript:executarPdfCsv()", icone: "🗂️", categoria: "automacoes" }
+      { id: "ut4", titulo: "Separar PDFs e CSVs (PDF/ARQ)", desc: "Move automaticamente arquivos PDF para a subpasta PDF e arquivos CSV para a subpasta ARQ.", url: "javascript:executarPdfCsv()", icone: "🗂️", categoria: "automacoes" },
+      { id: "ut5", titulo: "Copiar Arquivos Site/Web", desc: "Varre pastas em busca de diretórios 'site', 'web' ou 'RETORNO_FLASH' e copia os arquivos.", url: "javascript:executarCopiarWeb()", icone: "🌐", categoria: "automacoes" }
     ];
 
     function obterModulos() {
@@ -601,7 +586,7 @@
       renderizar();
     }
 
-    // Funções de Execução Direta das Automações Nativas no Navegador
+    // Funções de Automação Integradas
     async function executarUnirTextos() {
       try {
         const dirHandle = await window.showDirectoryPicker();
@@ -641,7 +626,7 @@
             const a = document.createElement('a'); a.href = url; a.download = `LAYOUT_${i}.txt`; a.click();
           }
         }
-        alert("Processo de união por layout (1 a 10) concluído!");
+        alert("Processo de união por layout concluído!");
       } catch (err) { console.log(err); }
     }
 
@@ -698,6 +683,47 @@
         }
         alert(`Separação concluída!\n- ${countPdf} PDFs movidos para 'PDF'\n- ${countCsv} CSVs movidos para 'ARQ'`);
       } catch (err) { alert("Permissão negada ou ação cancelada."); }
+    }
+
+    // Função baseada no script copiar arquivos_2.py para varrer pastas site/web/RETORNO_FLASH
+    async function executarCopiarWeb() {
+      try {
+        const dirHandle = await window.showDirectoryPicker();
+        let contador = 0;
+
+        // Função recursiva para varrer diretórios procurando pastas alvo
+        async function varrerDiretorio(handle) {
+          for await (const entry of handle.values()) {
+            if (entry.kind === 'directory') {
+              const dirNameLower = entry.name.toLowerCase();
+              if (dirNameLower === 'site' || dirNameLower === 'web' || dirNameLower === 'retorno_flash') {
+                // Lê os arquivos dentro da pasta alvo
+                for await (const fileEntry of entry.values()) {
+                  if (fileEntry.kind === 'file') {
+                    const file = await fileEntry.getFile();
+                    // Gera o download direto do arquivo coletado simulando a cópia para Downloads
+                    const url = URL.createObjectURL(file);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileEntry.name;
+                    a.click();
+                    contador++;
+                  }
+                }
+              } else {
+                // Continua a busca recursiva em subpastas
+                const subHandle = await handle.getDirectoryHandle(entry.name);
+                await varrerDiretorio(subHandle);
+              }
+            }
+          }
+        }
+
+        await varrerDiretorio(dirHandle);
+        alert(`Processo concluído! ${contador} arquivo(s) encontrado(s) nas pastas 'site', 'web' ou 'RETORNO_FLASH' e baixados.`);
+      } catch (err) {
+        alert("Ação cancelada ou erro ao ler as pastas.");
+      }
     }
 
     // Renderização dos cards e layout
