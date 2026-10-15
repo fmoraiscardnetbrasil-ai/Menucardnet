@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cardnet SP - Hub de Sistemas & Automações</title>
+  <title>Cardnet SP - Hub Central & Utilitários</title>
   <style>
     :root {
       --primary: #0f172a;
@@ -99,6 +99,44 @@
       flex: 1;
     }
 
+    /* Barra de Pesquisa e Filtros */
+    .filter-bar {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 280px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 12px 16px 12px 40px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent);
+    }
+
+    .search-box span {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+    }
+
     .section-title {
       font-size: 18px;
       font-weight: 700;
@@ -146,11 +184,17 @@
       margin-bottom: 12px;
     }
 
+    .card-icon-area {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
     .card-icon {
-      font-size: 32px;
+      font-size: 28px;
       background: #0f172a;
-      width: 50px;
-      height: 50px;
+      width: 48px;
+      height: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -158,20 +202,34 @@
       border: 1px solid var(--border);
     }
 
-    .btn-delete {
+    .card-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .btn-action {
       background: transparent;
       border: none;
       color: var(--text-muted);
       cursor: pointer;
-      font-size: 16px;
-      padding: 4px 8px;
+      font-size: 15px;
+      padding: 4px 6px;
       border-radius: 4px;
       transition: all 0.2s;
     }
 
+    .btn-action.star.active {
+      color: var(--accent);
+    }
+
+    .btn-action:hover {
+      color: #fff;
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
     .btn-delete:hover {
-      color: var(--danger);
-      background-color: rgba(239, 68, 68, 0.15);
+      color: var(--danger) !important;
+      background-color: rgba(239, 68, 68, 0.15) !important;
     }
 
     .card h3 {
@@ -188,6 +246,15 @@
       margin-bottom: 20px;
     }
 
+    .card-footer-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+      border-top: 1px solid rgba(51, 65, 85, 0.4);
+      padding-top: 12px;
+    }
+
     .card-link {
       font-size: 13px;
       font-weight: 700;
@@ -196,7 +263,10 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      margin-top: auto;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
     }
 
     .card-link:hover {
@@ -204,7 +274,28 @@
       color: #7dd3fc;
     }
 
-    /* Modal / Janela Flutuante para Importar */
+    .access-count {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Área de Console / Output Interno para Utilitários */
+    .console-box {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #38bdf8;
+      height: 90px;
+      overflow-y: auto;
+      margin-top: 12px;
+      white-space: pre-wrap;
+      display: none;
+    }
+
+    /* Modal / Janela Flutuante */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -313,6 +404,11 @@
       border-top: 1px solid var(--border);
     }
 
+    .footer-actions {
+      display: flex;
+      gap: 10px;
+    }
+
     .btn-reset {
       background: transparent;
       border: 1px solid var(--border);
@@ -343,31 +439,47 @@
   <header>
     <div class="logo-container">
       <h1>Cardnet <span>SP</span></h1>
-      <p>Hub Central de Aplicações & Produção</p>
+      <p>Hub Central de Aplicações & Automações</p>
     </div>
     <div class="top-actions">
       <button class="btn-primary" onclick="abrirModal()">
-        <span>➕</span> Importar Novo HTML
+        <span>➕</span> Adicionar Novo Módulo
       </button>
     </div>
   </header>
 
-  <!-- CONTEÚDO PRINCIPAL (MÓDULOS) -->
+  <!-- CONTEÚDO PRINCIPAL -->
   <div class="container">
 
-    <!-- SEÇÃO 1 -->
-    <div class="section-title">Ferramentas de Produção e Conciliação</div>
+    <!-- BARRA DE PESQUISA -->
+    <div class="filter-bar">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="inputBusca" placeholder="Pesquisar sistema ou ferramenta por nome ou descrição..." oninput="renderizar()">
+      </div>
+    </div>
+
+    <!-- SEÇÃO DE FAVORITOS -->
+    <div class="section-title" id="titulo-favoritos" style="display: none;">⭐ Módulos Favoritos</div>
+    <div class="grid-cards" id="grid-favoritos"></div>
+
+    <!-- SEÇÃO 1: PRODUÇÃO -->
+    <div class="section-title" id="titulo-producao">Ferramentas de Produção e Conciliação</div>
     <div class="grid-cards" id="grid-producao"></div>
 
-    <!-- SEÇÃO 2 -->
-    <div class="section-title">Leitura, Hardware e Registros</div>
+    <!-- SEÇÃO 2: HARDWARE -->
+    <div class="section-title" id="titulo-hardware">Leitura, Hardware e Registros</div>
     <div class="grid-cards" id="grid-hardware"></div>
 
-    <!-- SEÇÃO 3 -->
-    <div class="section-title">Formulários de Controle & Qualidade</div>
+    <!-- SEÇÃO 3: FORMULÁRIOS -->
+    <div class="section-title" id="titulo-formularios">Formulários de Controle & Qualidade</div>
     <div class="grid-cards" id="grid-formularios"></div>
 
-    <!-- SEÇÃO DINÂMICA (Módulos Importados pelo Usuário) -->
+    <!-- SEÇÃO 4: AUTOMAÇÕES LOCAIS (SCRIPTS CONVERTIDOS) -->
+    <div class="section-title" id="titulo-automacoes">Automações de Arquivos e Pastas (Bat/Python)</div>
+    <div class="grid-cards" id="grid-automacoes"></div>
+
+    <!-- SEÇÃO DINÂMICA (PERSONALIZADOS) -->
     <div class="section-title" id="titulo-personalizados" style="display: none;">Módulos Adicionados Recentemente</div>
     <div class="grid-cards" id="grid-personalizados"></div>
 
@@ -376,22 +488,28 @@
   <!-- MODAL DE IMPORTAÇÃO -->
   <div class="modal-overlay" id="modalImportar">
     <div class="modal">
-      <h2>Importar / Adicionar Novo Módulo HTML</h2>
+      <h2 id="modalTitulo">Adicionar Novo Módulo / Ferramenta</h2>
       <form id="formImportar" onsubmit="salvarNovoModulo(event)">
+        <input type="hidden" id="editandoId">
         
-        <div class="form-group">
-          <label for="arquivoHtml">1. Selecionar Arquivo HTML</label>
-          <input type="file" id="arquivoHtml" accept=".html,.htm" required onchange="autopreencherNome(this)">
+        <div class="form-group" id="grupoArquivo">
+          <label for="arquivoHtml">1. Selecionar Arquivo HTML (Opcional)</label>
+          <input type="file" id="arquivoHtml" accept=".html,.htm" onchange="autopreencherNome(this)">
         </div>
 
         <div class="form-group">
-          <label for="nomeModulo">2. Nome do Sistema / Módulo</label>
+          <label for="nomeModulo">2. Nome do Sistema / Ferramenta</label>
           <input type="text" id="nomeModulo" placeholder="Ex: Controle de Estoque" required>
         </div>
 
         <div class="form-group">
-          <label for="descricaoModulo">3. Descrição Curta</label>
+          <label for="descricaoModulo">3. Descrição Curta (Explicação do botão)</label>
           <input type="text" id="descricaoModulo" placeholder="Ex: Sistema para verificação de insumos" required>
+        </div>
+
+        <div class="form-group">
+          <label for="urlModuloManual">Link ou Nome do Arquivo (URL)</label>
+          <input type="text" id="urlModuloManual" placeholder="Ex: estoque.html" required>
         </div>
 
         <div class="form-group">
@@ -400,6 +518,7 @@
             <option value="producao">Produção e Conciliação</option>
             <option value="hardware">Leitura e Hardware</option>
             <option value="formularios">Formulários e Controle</option>
+            <option value="automacoes">Automações de Arquivos e Pastas</option>
             <option value="personalizados" selected>Módulos Adicionados</option>
           </select>
         </div>
@@ -411,7 +530,7 @@
 
         <div class="modal-buttons">
           <button type="button" class="btn-secondary" onclick="fecharModal()">Cancelar</button>
-          <button type="submit" class="btn-save">Adicionar ao Menu</button>
+          <button type="submit" class="btn-save" id="btnSalvarModal">Adicionar ao Menu</button>
         </div>
 
       </form>
@@ -421,11 +540,14 @@
   <!-- RODAPÉ -->
   <footer>
     <div>Cardnet SP • Tecnologia em Cartões</div>
-    <button class="btn-reset" onclick="restaurarPadroes()">Restaurar Módulos Padrão</button>
+    <div class="footer-actions">
+      <button class="btn-reset" onclick="exportarConfig()">Exportar Backup</button>
+      <button class="btn-reset" onclick="restaurarPadroes()">Restaurar Padrão</button>
+    </div>
   </footer>
 
   <script>
-    // Módulos Padrão de Fábrica
+    // Módulos Padrão de Fábrica + Utilitários convertidos (com descrições completas)
     const modulosPadrao = [
       { id: "m1", titulo: "Alinhamento Automático Campinas", desc: "Mapeamento dinâmico de posições e preenchimento de etiquetas.", url: "CAMPINAS_VERSÃO2.html", icone: "🎯", categoria: "producao" },
       { id: "m2", titulo: "Conciliador de AR (PDF x Excel)", desc: "Cruzamento automático de dados de rastreio e lotes.", url: "AR_REPETIDAS_CAMPINAS.html", icone: "📊", categoria: "producao" },
@@ -438,57 +560,220 @@
       { id: "m9", titulo: "Recibo de Coleta / Entrega", desc: "Geração de comprovantes de entrega com lacres e assinaturas.", url: "RECIBO_CARDNET.html", icone: "📋", categoria: "formularios" },
       { id: "m10", titulo: "Termo de Acerto de Ponto", desc: "Justificativa e acerto de horários para inclusão/exclusão.", url: "JUSTIFICATIVA.html", icone: "⏱️", categoria: "formularios" },
       { id: "m11", titulo: "Unificador Porto Alegre", desc: "Unificar arquivos de gravação da Unimed Porto Alegre.", url: "unificardor.html", icone: "📂", categoria: "producao" },
-      { id: "m12", titulo: "Calculadora da Logistica", desc: "Com base dos envios calculadora faz o peso e o total de volumes conforme padrão estabelecido.", url: "calculadoralogistica.html", icone: "📦", categoria: "producao" }
+      { id: "m12", titulo: "Calculadora da Logistica", desc: "Com base dos envios calculadora faz o peso e o total de volumes conforme padrão estabelecido.", url: "calculadoralogistica.html", icone: "📦", categoria: "producao" },
+      
+      // Utilitários Convertidos de Bat / Python integrados diretamente no Hub
+      { id: "ut1", titulo: "Unir Textos (.txt) Geral", desc: "Seleciona uma pasta de textos e une todos em um único arquivo de saída unificado.", url: "javascript:executarUnirTextos()", icone: "📄", categoria: "automacoes" },
+      { id: "ut2", titulo: "Unir Textos por Layout (1 a 10)", desc: "Varre a pasta e une automaticamente arquivos separados por sufixo de layout (_LAYOUT_1 a 10).", url: "javascript:executarUnirPorLayout()", icone: "📑", categoria: "automacoes" },
+      { id: "ut3", titulo: "Organizar PDFs (PF e PJ)", desc: "Separa arquivos PDF locais em subpastas dedicadas com base no prefixo (PF ou PJ).", url: "javascript:executarPfPj()", icone: "📁", categoria: "automacoes" },
+      { id: "ut4", titulo: "Separar PDFs e CSVs (PDF/ARQ)", desc: "Move automaticamente arquivos PDF para a subpasta PDF e arquivos CSV para a subpasta ARQ.", url: "javascript:executarPdfCsv()", icone: "🗂️", categoria: "automacoes" }
     ];
 
-    // Carrega dados salvos ou utiliza o padrão
     function obterModulos() {
       const salvos = localStorage.getItem('cardnet_modulos');
       return salvos ? JSON.parse(salvos) : modulosPadrao;
     }
 
-    // Renderiza todos os cards na tela
+    function obterFavoritos() {
+      const favs = localStorage.getItem('cardnet_favoritos');
+      return favs ? JSON.parse(favs) : [];
+    }
+
+    function obterEstatisticas() {
+      const stats = localStorage.getItem('cardnet_stats');
+      return stats ? JSON.parse(stats) : {};
+    }
+
+    function registrarAcesso(id) {
+      let stats = obterEstatisticas();
+      stats[id] = (stats[id] || 0) + 1;
+      localStorage.setItem('cardnet_stats', JSON.stringify(stats));
+    }
+
+    function toggleFavorito(id) {
+      let favs = obterFavoritos();
+      if (favs.includes(id)) {
+        favs = favs.filter(f => f !== id);
+      } else {
+        favs.push(id);
+      }
+      localStorage.setItem('cardnet_favoritos', JSON.stringify(favs));
+      renderizar();
+    }
+
+    // Funções de Execução Direta das Automações Nativas no Navegador
+    async function executarUnirTextos() {
+      try {
+        const dirHandle = await window.showDirectoryPicker();
+        let conteudoTotal = "";
+        let count = 0;
+        for await (const entry of dirHandle.values()) {
+          if (entry.kind === 'file' && entry.name.toLowerCase().endsWith('.txt') && entry.name !== 'ARQUIVO_JUNTADO.txt') {
+            const file = await entry.getFile();
+            conteudoTotal += await file.text() + "\n";
+            count++;
+          }
+        }
+        if (count === 0) { alert("Nenhum arquivo .txt encontrado."); return; }
+        const blob = new Blob([conteudoTotal], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'ARQUIVO_JUNTADO.txt'; a.click();
+        alert(`Sucesso! ${count} arquivos .txt unidos com sucesso.`);
+      } catch (err) { console.log(err); }
+    }
+
+    async function executarUnirPorLayout() {
+      try {
+        const dirHandle = await window.showDirectoryPicker();
+        for (let i = 1; i <= 10; i++) {
+          let conteudoLayout = "";
+          let count = 0;
+          for await (const entry of dirHandle.values()) {
+            if (entry.kind === 'file' && entry.name.toLowerCase().includes(`_layout_${i}.txt`)) {
+              const file = await entry.getFile();
+              conteudoLayout += await file.text() + "\n";
+              count++;
+            }
+          }
+          if (count > 0) {
+            const blob = new Blob([conteudoLayout], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `LAYOUT_${i}.txt`; a.click();
+          }
+        }
+        alert("Processo de união por layout (1 a 10) concluído!");
+      } catch (err) { console.log(err); }
+    }
+
+    async function executarPfPj() {
+      try {
+        const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+        const pfHandle = await dirHandle.getDirectoryHandle('PF', { create: true });
+        const pjHandle = await dirHandle.getDirectoryHandle('PJ', { create: true });
+        let movedCount = 0;
+        for await (const entry of dirHandle.values()) {
+          if (entry.kind === 'file') {
+            const name = entry.name;
+            const lower = name.toLowerCase();
+            if (lower.endsWith('.pdf')) {
+              let destinoHandle = null;
+              if (lower.startsWith('pf')) destinoHandle = pfHandle;
+              else if (lower.startsWith('pj')) destinoHandle = pjHandle;
+              if (destinoHandle) {
+                const file = await entry.getFile();
+                const newFileHandle = await destinoHandle.getFileHandle(name, { create: true });
+                const writable = await newFileHandle.createWritable();
+                await writable.write(file); await writable.close();
+                await dirHandle.removeEntry(name);
+                movedCount++;
+              }
+            }
+          }
+        }
+        alert(`Organização PF/PJ concluída! ${movedCount} arquivos movidos.`);
+      } catch (err) { alert("Permissão negada ou ação cancelada."); }
+    }
+
+    async function executarPdfCsv() {
+      try {
+        const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+        const pdfHandle = await dirHandle.getDirectoryHandle('PDF', { create: true });
+        const arqHandle = await dirHandle.getDirectoryHandle('ARQ', { create: true });
+        let countPdf = 0, countCsv = 0;
+        for await (const entry of dirHandle.values()) {
+          if (entry.kind === 'file') {
+            const name = entry.name;
+            const lower = name.toLowerCase();
+            const file = await entry.getFile();
+            if (lower.endsWith('.pdf')) {
+              const newFile = await pdfHandle.getFileHandle(name, { create: true });
+              const w = await newFile.createWritable(); await w.write(file); await w.close();
+              await dirHandle.removeEntry(name); countPdf++;
+            } else if (lower.endsWith('.csv')) {
+              const newFile = await arqHandle.getFileHandle(name, { create: true });
+              const w = await newFile.createWritable(); await w.write(file); await w.close();
+              await dirHandle.removeEntry(name); countCsv++;
+            }
+          }
+        }
+        alert(`Separação concluída!\n- ${countPdf} PDFs movidos para 'PDF'\n- ${countCsv} CSVs movidos para 'ARQ'`);
+      } catch (err) { alert("Permissão negada ou ação cancelada."); }
+    }
+
+    // Renderização dos cards e layout
     function renderizar() {
       const modulos = obterModulos();
+      const favoritos = obterFavoritos();
+      const estatisticas = obterEstatisticas();
+      const termoBusca = document.getElementById('inputBusca').value.toLowerCase().trim();
 
-      // Limpa as áreas
+      document.getElementById('grid-favoritos').innerHTML = '';
       document.getElementById('grid-producao').innerHTML = '';
       document.getElementById('grid-hardware').innerHTML = '';
       document.getElementById('grid-formularios').innerHTML = '';
+      document.getElementById('grid-automacoes').innerHTML = '';
       document.getElementById('grid-personalizados').innerHTML = '';
 
-      let contadorPersonalizados = 0;
+      let contFav = 0, contProd = 0, contHard = 0, contForm = 0, contAuto = 0, contPers = 0;
 
       modulos.forEach(m => {
+        const matchBusca = m.titulo.toLowerCase().includes(termoBusca) || m.desc.toLowerCase().includes(termoBusca);
+        if (!matchBusca) return;
+
+        const isFav = favoritos.includes(m.id);
+        const acessos = estatisticas[m.id] || 0;
+
+        const isJavascript = m.url.startsWith('javascript:');
+        const linkAttr = isJavascript ? `onclick="${m.url.replace('javascript:', '')}; registrarAcesso('${m.id}');"` : `href="${m.url}" target="_blank" onclick="registrarAcesso('${m.id}')"`;
+
         const cardHTML = `
           <div class="card" id="card-${m.id}">
             <div>
               <div class="card-header">
-                <div class="card-icon">${m.icone || '📄'}</div>
-                <button class="btn-delete" title="Excluir do menu" onclick="deletarModulo('${m.id}')">🗑️</button>
+                <div class="card-icon-area">
+                  <div class="card-icon">${m.icone || '📄'}</div>
+                </div>
+                <div class="card-actions">
+                  <button class="btn-action star ${isFav ? 'active' : ''}" title="${isFav ? 'Remover dos favoritos' : 'Favoritar'}" onclick="toggleFavorito('${m.id}')">⭐</button>
+                  <button class="btn-action" title="Editar módulo" onclick="abrirModalEditar('${m.id}')">✏️</button>
+                  <button class="btn-action btn-delete" title="Excluir" onclick="deletarModulo('${m.id}')">🗑️</button>
+                </div>
               </div>
               <h3>${m.titulo}</h3>
               <p>${m.desc}</p>
             </div>
-            <a href="${m.url}" target="_blank" class="card-link">Acessar sistema ↗</a>
+            <div class="card-footer-info">
+              <a ${linkAttr} class="card-link">${isJavascript ? 'Executar ferramenta ⚡' : 'Acessar sistema ↗'}</a>
+              <span class="access-count">${acessos} ${acessos === 1 ? 'uso' : 'usos'}</span>
+            </div>
           </div>
         `;
+
+        if (isFav && termoBusca === '') {
+          document.getElementById('grid-favoritos').innerHTML += cardHTML;
+          contFav++;
+        }
 
         const targetGrid = document.getElementById(`grid-${m.categoria}`) || document.getElementById('grid-personalizados');
         targetGrid.innerHTML += cardHTML;
 
-        if (m.categoria === 'personalizados') {
-          contadorPersonalizados++;
-        }
+        if (m.categoria === 'producao') contProd++;
+        if (m.categoria === 'hardware') contHard++;
+        if (m.categoria === 'formularios') contForm++;
+        if (m.categoria === 'automacoes') contAuto++;
+        if (m.categoria === 'personalizados') contPers++;
       });
 
-      // Exibe a seção dinâmica apenas se houverem módulos nela
-      document.getElementById('titulo-personalizados').style.display = contadorPersonalizados > 0 ? 'flex' : 'none';
+      document.getElementById('titulo-favoritos').style.display = (contFav > 0 && termoBusca === '') ? 'flex' : 'none';
+      document.getElementById('titulo-producao').style.display = contProd > 0 ? 'flex' : 'none';
+      document.getElementById('titulo-hardware').style.display = contHard > 0 ? 'flex' : 'none';
+      document.getElementById('titulo-formularios').style.display = contForm > 0 ? 'flex' : 'none';
+      document.getElementById('titulo-automacoes').style.display = contAuto > 0 ? 'flex' : 'none';
+      document.getElementById('titulo-personalizados').style.display = contPers > 0 ? 'flex' : 'none';
     }
 
-    // Função para deletar um card
     function deletarModulo(id) {
-      if (confirm("Deseja remover este sistema do menu visual?")) {
+      if (confirm("Deseja remover este item do menu?")) {
         let modulos = obterModulos();
         modulos = modulos.filter(m => m.id !== id);
         localStorage.setItem('cardnet_modulos', JSON.stringify(modulos));
@@ -496,8 +781,31 @@
       }
     }
 
-    // Modal Controle
     function abrirModal() {
+      document.getElementById('modalTitulo').innerText = "Adicionar Novo Módulo / Ferramenta";
+      document.getElementById('btnSalvarModal').innerText = "Adicionar ao Menu";
+      document.getElementById('editandoId').value = "";
+      document.getElementById('grupoArquivo').style.display = 'block';
+      document.getElementById('formImportar').reset();
+      document.getElementById('modalImportar').style.display = 'flex';
+    }
+
+    function abrirModalEditar(id) {
+      const modulos = obterModulos();
+      const m = modulos.find(item => item.id === id);
+      if (!m) return;
+
+      document.getElementById('modalTitulo').innerText = "Editar Módulo";
+      document.getElementById('btnSalvarModal').innerText = "Salvar Alterações";
+      document.getElementById('editandoId').value = m.id;
+      document.getElementById('grupoArquivo').style.display = 'none';
+
+      document.getElementById('nomeModulo').value = m.titulo;
+      document.getElementById('descricaoModulo').value = m.desc;
+      document.getElementById('urlModuloManual').value = m.url;
+      document.getElementById('categoriaModulo').value = m.categoria;
+      document.getElementById('iconeModulo').value = m.icone || '🚀';
+
       document.getElementById('modalImportar').style.display = 'flex';
     }
 
@@ -506,56 +814,67 @@
       document.getElementById('formImportar').reset();
     }
 
-    // Preenche o nome do arquivo no campo caso o usuário não digite nada
     function autopreencherNome(input) {
       if (input.files && input.files[0]) {
         const nomeArquivo = input.files[0].name;
         document.getElementById('nomeModulo').value = nomeArquivo.replace(/\.[^/.]+$/, "");
+        document.getElementById('urlModuloManual').value = nomeArquivo;
       }
     }
 
-    // Salvar novo módulo
     function salvarNovoModulo(e) {
       e.preventDefault();
-
+      const editandoId = document.getElementById('editandoId').value;
       const fileInput = document.getElementById('arquivoHtml');
       const nome = document.getElementById('nomeModulo').value;
       const desc = document.getElementById('descricaoModulo').value;
+      const urlManual = document.getElementById('urlModuloManual').value;
       const categoria = document.getElementById('categoriaModulo').value;
       const icone = document.getElementById('iconeModulo').value;
 
-      if (!fileInput.files[0]) return;
+      let modulos = obterModulos();
 
-      const urlArquivo = fileInput.files[0].name; // Nome exato do arquivo salvo na pasta
-
-      const novoModulo = {
-        id: 'user_' + Date.now(),
-        titulo: nome,
-        desc: desc,
-        url: urlArquivo,
-        icone: icone,
-        categoria: categoria
-      };
-
-      const modulos = obterModulos();
-      modulos.push(novoModulo);
-      localStorage.setItem('cardnet_modulos', JSON.stringify(modulos));
-
-      fecharModal();
-      renderizar();
-
-      alert(`Atenção: Certifique-se de enviar também o arquivo "${urlArquivo}" para o seu repositório no GitHub para que o link funcione online!`);
-    }
-
-    // Restaura o menu para o padrão inicial
-    function restaurarPadroes() {
-      if (confirm("Deseja restaurar o menu para a configuração original de fábrica?")) {
-        localStorage.removeItem('cardnet_modulos');
+      if (editandoId) {
+        modulos = modulos.map(m => m.id === editandoId ? { ...m, titulo: nome, desc: desc, url: urlManual, categoria, icone } : m);
+        localStorage.setItem('cardnet_modulos', JSON.stringify(modulos));
+        fecharModal();
+        renderizar();
+      } else {
+        let urlArquivo = urlManual;
+        if (fileInput.files && fileInput.files[0]) {
+          urlArquivo = fileInput.files[0].name;
+        }
+        const novoModulo = {
+          id: 'user_' + Date.now(),
+          titulo: nome,
+          desc: desc,
+          url: urlArquivo,
+          icone: icone,
+          categoria: categoria
+        };
+        modulos.push(novoModulo);
+        localStorage.setItem('cardnet_modulos', JSON.stringify(modulos));
+        fecharModal();
         renderizar();
       }
     }
 
-    // Inicialização
+    function exportarConfig() {
+      const dados = { modulos: obterModulos(), favoritos: obterFavoritos() };
+      const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'cardnet_backup_config.json'; a.click();
+    }
+
+    function restaurarPadroes() {
+      if (confirm("Deseja restaurar o menu para a configuração original?")) {
+        localStorage.removeItem('cardnet_modulos');
+        localStorage.removeItem('cardnet_favoritos');
+        localStorage.removeItem('cardnet_stats');
+        renderizar();
+      }
+    }
+
     window.onload = renderizar;
   </script>
 </body>
