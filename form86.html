@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORM 86 Rev. 00 - FORMULÁRIO DE HOMOLOGAÇÃO DE AMOSTRAS E PROCESSO</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #3182ce;
+            --brand-orange: #e67e22;
+            --border-color: #cbd5e0;
+            --bg-light: #f7fafc;
+            --text-color: #2d3748;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 8.5pt;
+            color: var(--text-color);
+            background-color: #e2e8f0;
+            padding: 15px;
+        }
+
+        /* BARRA SUPERIOR DE AÇÕES (ESCONDIDA NA IMPRESSÃO) */
+        .no-print-bar {
+            max-width: 210mm;
+            margin: 0 auto 15px auto;
+            background: #ffffff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .no-print-bar h2 {
+            font-size: 11pt;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            font-size: 8.5pt;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary);
+        }
+
+        .btn-orange {
+            background-color: var(--brand-orange);
+        }
+
+        .btn-orange:hover {
+            background-color: #d35400;
+        }
+
+        /* ESTRUTURA DAS PÁGINAS A4 */
+        .page-container {
+            max-width: 210mm;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .a4-page {
+            width: 210mm;
+            height: 297mm;
+            max-height: 297mm;
+            background: white;
+            padding: 8mm 12mm 10mm 12mm;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .page-content {
+            flex-grow: 1;
+        }
+
+        /* LOGO CARDNET SVG */
+        .logo-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* TABELA DE CABEÇALHO */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+
+        .header-table td {
+            border: 1px solid var(--primary);
+            padding: 4px 8px;
+            vertical-align: middle;
+        }
+
+        .title-cell {
+            text-align: center;
+            font-weight: bold;
+            font-size: 10.5pt;
+            color: var(--primary);
+            text-transform: uppercase;
+            width: 58%;
+        }
+
+        .doc-info-cell {
+            width: 22%;
+            font-size: 8pt;
+            color: #2d3748;
+            line-height: 1.3;
+        }
+
+        /* SEÇÕES */
+        .section-header {
+            background-color: var(--primary);
+            color: white;
+            font-weight: bold;
+            font-size: 8.5pt;
+            padding: 3px 6px;
+            margin-top: 6px;
+            margin-bottom: 4px;
+            border-radius: 2px;
+            text-transform: uppercase;
+        }
+
+        /* TABELAS DO FORMULÁRIO */
+        table.form-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 6px;
+        }
+
+        table.form-table th, table.form-table td {
+            border: 1px solid var(--border-color);
+            padding: 3px 5px;
+            vertical-align: middle;
+        }
+
+        table.form-table th {
+            background-color: #edf2f7;
+            color: var(--text-color);
+            font-weight: bold;
+            font-size: 8pt;
+            text-align: left;
+        }
+
+        .label-cell {
+            font-weight: bold;
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            width: 22%;
+            font-size: 8pt;
+        }
+
+        /* INPUTS E CONTROLES */
+        input[type="text"], textarea {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #cbd5e0;
+            border-radius: 2px;
+            padding: 3px 5px;
+            font-family: inherit;
+            font-size: 8pt;
+            background-color: #fff;
+            color: #000;
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            background-color: #fff;
+            border-color: var(--secondary);
+            outline: none;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin: 4px 0;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 8pt;
+            cursor: pointer;
+        }
+
+        /* EVIDÊNCIAS FOTOGRÁFICAS */
+        .image-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .image-card {
+            border: 1px dashed var(--border-color);
+            background-color: var(--bg-light);
+            padding: 6px;
+            border-radius: 4px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .image-preview-container {
+            width: 100%;
+            height: 98mm;
+            border: 1px dashed #a0aec0;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .image-preview-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .image-prompt {
+            color: #718096;
+            font-size: 8pt;
+            text-align: center;
+            padding: 10px;
+            line-height: 1.4;
+        }
+
+        .btn-remove-img {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(229, 62, 62, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .image-card:hover .btn-remove-img {
+            display: flex;
+        }
+
+        .image-caption {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        /* RODAPÉ RESTRITO */
+        .footer-bar {
+            border-top: 1px solid var(--primary);
+            padding-top: 4px;
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8pt;
+            color: #4a5568;
+            font-weight: bold;
+        }
+
+        .footer-restricted {
+            color: #c53030;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* IMPRESSÃO / SALVAR EM PDF */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+                font-size: 8pt;
+            }
+
+            .no-print-bar {
+                display: none !important;
+            }
+
+            .a4-page {
+                box-shadow: none;
+                margin: 0;
+                padding: 8mm 10mm;
+                width: 210mm;
+                height: 297mm;
+                max-height: 297mm;
+                page-break-after: always;
+                page-break-inside: avoid;
+            }
+
+            .btn-remove-img, .image-prompt {
+                display: none !important;
+            }
+
+            .image-preview-container {
+                border: none !important;
+                height: 102mm;
+            }
+
+            input[type="text"], textarea {
+                border: none !important;
+                background: transparent !important;
+            }
+
+            .btn-add-img-box {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA DE FERRAMENTAS SUPERIOR -->
+    <div class="no-print-bar">
+        <h2>CARDNET - FORM 86 Rev. 00</h2>
+        <div class="btn-group">
+            <button class="btn btn-orange" onclick="window.print()">
+                🖨️ Imprimir / Salvar PDF
+            </button>
+            <button class="btn" onclick="saveJSON()">
+                💾 Salvar Dados (JSON)
+            </button>
+            <button class="btn" onclick="document.getElementById('file-input-json').click()">
+                📂 Carregar Dados
+            </button>
+            <input type="file" id="file-input-json" accept=".json" style="display:none" onchange="loadJSON(event)">
+            <button class="btn" style="background-color:#e53e3e;" onclick="if(confirm('Deseja limpar o formulário?')) location.reload();">
+                🔄 Limpar
+            </button>
+        </div>
+    </div>
+
+    <!-- DOCUMENTO A4 -->
+    <div class="page-container">
+
+        <!-- ================= PÁGINA 1 ================= -->
+        <div class="a4-page" id="page-1">
+            <div class="page-content">
+                <!-- CABEÇALHO -->
+                <table class="header-table">
+                    <tr>
+                        <td style="width: 22%; text-align: center;">
+                            <div class="logo-box">
+                                <svg width="125" height="32" viewBox="0 0 200 50">
+                                    <text x="5" y="32" font-family="Arial, sans-serif" font-size="28" fill="#000000">CARD</text>
+                                    <text x="82" y="36" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#e67e22">N</text>
+                                    <text x="110" y="32" font-family="Arial, sans-serif" font-size="28" fill="#e67e22">ET</text>
+                                    <circle cx="152" cy="12" r="4" stroke="#e67e22" stroke-width="1" fill="none" />
+                                    <text x="150" y="14" font-family="Arial, sans-serif" font-size="6" fill="#e67e22">R</text>
+                                    <line x1="5" y1="42" x2="160" y2="42" stroke="#e67e22" stroke-width="3" />
+                                </svg>
+                            </div>
+                        </td>
+                        <td class="title-cell">
+                            FORMULÁRIO DE HOMOLOGAÇÃO DE<br>AMOSTRAS E PROCESSO
+                        </td>
+                        <td class="doc-info-cell">
+                            <strong>FORM 86 Rev. 00</strong><br>
+                            <strong>Data:</strong> 07/10/2026
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- 1. IDENTIFICAÇÃO -->
+                <div class="section-header">1. IDENTIFICAÇÃO</div>
+                <table class="form-table">
+                    <tr>
+                        <td class="label-cell">Cliente</td>
+                        <td><input type="text" id="cliente"></td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Tipo de Material</td>
+                        <td><input type="text" id="tipo_material"></td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Tipo de Processo</td>
+                        <td><input type="text" id="tipo_processo"></td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Quantidade Homologada</td>
+                        <td><input type="text" id="qtd_homologada"></td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Data de Homologação</td>
+                        <td><input type="text" id="data_homologacao" placeholder="DD/MM/AAAA"></td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Responsável pela Homologação</td>
+                        <td><input type="text" id="resp_homologacao"></td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Observação:</td>
+                        <td><textarea id="obs_identificacao" rows="2"></textarea></td>
+                    </tr>
+                </table>
+
+                <!-- 2. HOMOLOGAÇÃO DOS PROCESSOS -->
+                <div class="section-header">2. HOMOLOGAÇÃO DOS PROCESSOS</div>
+                <table class="form-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Processo / Etapa</th>
+                            <th style="width: 15%;">Data</th>
+                            <th style="width: 20%;">Responsável</th>
+                            <th style="width: 15%;">Referência</th>
+                            <th style="width: 25%;">Observações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-processos">
+                        <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                    </tbody>
+                </table>
+
+                <!-- 3. INFORMAÇÕES TÉCNICAS -->
+                <div class="section-header">3. INFORMAÇÕES TÉCNICAS (sistemas, testes e etc.)</div>
+                <table class="form-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 8%; text-align: center;">Item</th>
+                            <th style="width: 52%;">Informação</th>
+                            <th style="width: 25%;">Responsável</th>
+                            <th style="width: 15%;">Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="text-align: center; font-weight: bold;">1.</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td style="text-align: center; font-weight: bold;">2.</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td style="text-align: center; font-weight: bold;">3.</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td style="text-align: center; font-weight: bold;">4.</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td style="text-align: center; font-weight: bold;">5.</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                    </tbody>
+                </table>
+
+                <!-- 4. RESULTADO DA HOMOLOGAÇÃO -->
+                <div class="section-header">4. RESULTADO DA HOMOLOGAÇÃO</div>
+                <div class="radio-group">
+                    <label class="radio-item">
+                        <input type="radio" name="resultado" value="APROVADO">
+                        <strong>APROVADO</strong> - Material e processos homologados para produção.
+                    </label>
+                    <label class="radio-item">
+                        <input type="radio" name="resultado" value="RESTRIÇÃO">
+                        <strong>APROVADO COM RESTRIÇÕES</strong> - Material/processo aprovado, porém necessita de acompanhamento ou ajustes.
+                    </label>
+                    <label class="radio-item">
+                        <input type="radio" name="resultado" value="REPROVADO">
+                        <strong>REPROVADO</strong> - Material/processo não atende aos requisitos estabelecidos, sendo necessária a realização de ajustes e/ou nova homologação.
+                    </label>
+                </div>
+                <div style="margin-top: 4px;">
+                    <label style="font-weight: bold; font-size: 8pt;">Observações / Considerações Finais:</label>
+                    <textarea id="obs_resultado" rows="2" style="margin-top: 2px;"></textarea>
+                </div>
+            </div>
+
+            <!-- RODAPÉ PÁGINA 1 -->
+            <div class="footer-bar">
+                <span>CARDNET - FORM 86 Rev. 00</span>
+                <span class="footer-restricted">RESTRITO</span>
+                <span>Página 1 de 2</span>
+            </div>
+        </div>
+
+
+        <!-- ================= PÁGINA 2 ================= -->
+        <div class="a4-page" id="page-2">
+            <div class="page-content">
+                <!-- CABEÇALHO PÁGINA 2 -->
+                <table class="header-table">
+                    <tr>
+                        <td style="width: 22%; text-align: center;">
+                            <div class="logo-box">
+                                <svg width="125" height="32" viewBox="0 0 200 50">
+                                    <text x="5" y="32" font-family="Arial, sans-serif" font-size="28" fill="#000000">CARD</text>
+                                    <text x="82" y="36" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#e67e22">N</text>
+                                    <text x="110" y="32" font-family="Arial, sans-serif" font-size="28" fill="#e67e22">ET</text>
+                                    <circle cx="152" cy="12" r="4" stroke="#e67e22" stroke-width="1" fill="none" />
+                                    <text x="150" y="14" font-family="Arial, sans-serif" font-size="6" fill="#e67e22">R</text>
+                                    <line x1="5" y1="42" x2="160" y2="42" stroke="#e67e22" stroke-width="3" />
+                                </svg>
+                            </div>
+                        </td>
+                        <td class="title-cell">
+                            FORMULÁRIO DE HOMOLOGAÇÃO DE<br>AMOSTRAS E PROCESSO
+                        </td>
+                        <td class="doc-info-cell">
+                            <strong>FORM 86 Rev. 00</strong><br>
+                            <strong>Data:</strong> 07/10/2026
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- 5. CONCLUSÃO -->
+                <div class="section-header">5. CONCLUSÃO</div>
+                <p style="font-size: 8pt; margin-bottom: 4px;">
+                    Após a realização e avaliação das etapas de homologação do material e dos processos relacionados, conclui-se que o material e os processos avaliados estão:
+                </p>
+                <div class="radio-group" style="margin-bottom: 4px;">
+                    <label class="radio-item">
+                        <input type="radio" name="conclusao" value="APTOS">
+                        <strong>APTOS PARA PRODUÇÃO</strong>
+                    </label>
+                    <label class="radio-item">
+                        <input type="radio" name="conclusao" value="RESTRIÇÃO">
+                        <strong>APTOS PARA PRODUÇÃO COM RESTRIÇÕES</strong>
+                    </label>
+                    <label class="radio-item">
+                        <input type="radio" name="conclusao" value="NAO_APTOS">
+                        <strong>NÃO APTOS PARA PRODUÇÃO</strong>
+                    </label>
+                </div>
+                <div style="margin-bottom: 6px;">
+                    <label style="font-weight: bold; font-size: 8pt;">Justificativa / Considerações:</label>
+                    <textarea id="justificativa_conclusao" rows="2" style="margin-top: 2px;"></textarea>
+                </div>
+
+                <!-- 6. APROVAÇÕES -->
+                <div class="section-header">6. APROVAÇÕES</div>
+                <table class="form-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Responsável</th>
+                            <th style="width: 35%;">Nome</th>
+                            <th style="width: 25%;">Assinatura</th>
+                            <th style="width: 15%;">Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="font-weight: bold; background-color: var(--bg-light);">Produção</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td style="font-weight: bold; background-color: var(--bg-light);">Qualidade / SGQ</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td style="font-weight: bold; background-color: var(--bg-light);">Desenvolvimento</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td style="font-weight: bold; background-color: var(--bg-light);">Resp. Aprovação Final</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                    </tbody>
+                </table>
+
+                <!-- 7. EVIDÊNCIAS FOTOGRÁFICAS / REGISTRO DE IMAGENS -->
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>7. EVIDÊNCIAS FOTOGRÁFICAS / REGISTRO DE IMAGENS</span>
+                    <button class="btn btn-orange btn-add-img-box" style="padding: 2px 6px; font-size: 7.5pt;" onclick="addImageCard()">+ Adicionar Imagem</button>
+                </div>
+
+                <div class="image-grid" id="image-grid">
+                    <!-- CARD IMAGEM 1 -->
+                    <div class="image-card">
+                        <button class="btn-remove-img" onclick="removeImage(this)">✕</button>
+                        <div class="image-preview-container" onclick="triggerImageUpload(this)">
+                            <div class="image-prompt">
+                                📷 <strong>Imagem 01 - Amostra / Evidência</strong><br>
+                                Clique, Arraste ou Cole (Ctrl+V) a foto aqui
+                            </div>
+                            <img src="" style="display:none;">
+                        </div>
+                        <input type="file" accept="image/*" style="display:none;" onchange="handleFileSelect(this)">
+                        <input type="text" class="image-caption" placeholder="Legenda / Descrição da Imagem 01...">
+                    </div>
+
+                    <!-- CARD IMAGEM 2 -->
+                    <div class="image-card">
+                        <button class="btn-remove-img" onclick="removeImage(this)">✕</button>
+                        <div class="image-preview-container" onclick="triggerImageUpload(this)">
+                            <div class="image-prompt">
+                                📷 <strong>Imagem 02 - Amostra / Evidência</strong><br>
+                                Clique, Arraste ou Cole (Ctrl+V) a foto aqui
+                            </div>
+                            <img src="" style="display:none;">
+                        </div>
+                        <input type="file" accept="image/*" style="display:none;" onchange="handleFileSelect(this)">
+                        <input type="text" class="image-caption" placeholder="Legenda / Descrição da Imagem 02...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- RODAPÉ PÁGINA 2 -->
+            <div class="footer-bar">
+                <span>CARDNET - FORM 86 Rev. 00</span>
+                <span class="footer-restricted">RESTRITO</span>
+                <span>Página 2 de 2</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPTS JS INTERATIVOS -->
+    <script>
+        let imgCount = 2;
+
+        function triggerImageUpload(container) {
+            const fileInput = container.parentElement.querySelector('input[type="file"]');
+            fileInput.click();
+        }
+
+        function handleFileSelect(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    displayImage(input.parentElement, e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function displayImage(card, src) {
+            const container = card.querySelector('.image-preview-container');
+            const img = container.querySelector('img');
+            const prompt = card.querySelector('.image-prompt');
+            img.src = src;
+            img.style.display = 'block';
+            if(prompt) prompt.style.display = 'none';
+        }
+
+        function removeImage(btn) {
+            const card = btn.parentElement;
+            const img = card.querySelector('img');
+            const prompt = card.querySelector('.image-prompt');
+            const fileInput = card.querySelector('input[type="file"]');
+            img.src = '';
+            img.style.display = 'none';
+            if(prompt) prompt.style.display = 'block';
+            if(fileInput) fileInput.value = '';
+        }
+
+        function addImageCard() {
+            imgCount++;
+            const grid = document.getElementById('image-grid');
+            const card = document.createElement('div');
+            card.className = 'image-card';
+            card.innerHTML = `
+                <button class="btn-remove-img" onclick="removeImage(this)">✕</
