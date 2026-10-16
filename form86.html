@@ -248,16 +248,23 @@
 
         .image-preview-container {
             width: 100%;
-            height: 98mm;
+            height: 92mm;
             border: 1px dashed #a0aec0;
             background-color: #ffffff;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
             overflow: hidden;
             border-radius: 2px;
             cursor: pointer;
+            gap: 6px;
+        }
+
+        .image-preview-container.dragover {
+            background-color: #ebf8ff;
+            border-color: var(--secondary);
         }
 
         .image-preview-container img {
@@ -270,8 +277,25 @@
             color: #718096;
             font-size: 8pt;
             text-align: center;
-            padding: 10px;
-            line-height: 1.4;
+            padding: 5px;
+            line-height: 1.3;
+            pointer-events: none;
+        }
+
+        .btn-upload-file {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            font-size: 7.5pt;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 5;
+        }
+
+        .btn-upload-file:hover {
+            background-color: var(--primary);
         }
 
         .btn-remove-img {
@@ -350,13 +374,13 @@
                 page-break-inside: avoid;
             }
 
-            .btn-remove-img, .image-prompt {
+            .btn-remove-img, .image-prompt, .btn-upload-file {
                 display: none !important;
             }
 
             .image-preview-container {
                 border: none !important;
-                height: 102mm;
+                height: 98mm;
             }
 
             input[type="text"], textarea {
@@ -608,11 +632,16 @@
                     <!-- CARD IMAGEM 1 -->
                     <div class="image-card">
                         <button class="btn-remove-img" onclick="removeImage(this)">✕</button>
-                        <div class="image-preview-container" onclick="triggerImageUpload(this)">
+                        <div class="image-preview-container" 
+                             ondragover="handleDragOver(event)" 
+                             ondragleave="handleDragLeave(event)" 
+                             ondrop="handleDrop(event)" 
+                             onclick="triggerImageUpload(this)">
                             <div class="image-prompt">
                                 📷 <strong>Imagem 01 - Amostra / Evidência</strong><br>
-                                Clique, Arraste ou Cole (Ctrl+V) a foto aqui
+                                Arraste ou cole (Ctrl+V) a foto aqui
                             </div>
+                            <button type="button" class="btn-upload-file" onclick="event.stopPropagation(); triggerImageUploadFromBtn(this);">Selecionar Imagem</button>
                             <img src="" style="display:none;">
                         </div>
                         <input type="file" accept="image/*" style="display:none;" onchange="handleFileSelect(this)">
@@ -622,11 +651,16 @@
                     <!-- CARD IMAGEM 2 -->
                     <div class="image-card">
                         <button class="btn-remove-img" onclick="removeImage(this)">✕</button>
-                        <div class="image-preview-container" onclick="triggerImageUpload(this)">
+                        <div class="image-preview-container" 
+                             ondragover="handleDragOver(event)" 
+                             ondragleave="handleDragLeave(event)" 
+                             ondrop="handleDrop(event)" 
+                             onclick="triggerImageUpload(this)">
                             <div class="image-prompt">
                                 📷 <strong>Imagem 02 - Amostra / Evidência</strong><br>
-                                Clique, Arraste ou Cole (Ctrl+V) a foto aqui
+                                Arraste ou cole (Ctrl+V) a foto aqui
                             </div>
+                            <button type="button" class="btn-upload-file" onclick="event.stopPropagation(); triggerImageUploadFromBtn(this);">Selecionar Imagem</button>
                             <img src="" style="display:none;">
                         </div>
                         <input type="file" accept="image/*" style="display:none;" onchange="handleFileSelect(this)">
@@ -654,36 +688,101 @@
             fileInput.click();
         }
 
+        function triggerImageUploadFromBtn(btn) {
+            const container = btn.parentElement;
+            triggerImageUpload(container);
+        }
+
         function handleFileSelect(input) {
             const file = input.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    displayImage(input.parentElement, e.target.result);
-                }
-                reader.readAsDataURL(file);
+                processFile(input.parentElement, file);
             }
+        }
+
+        function processFile(card, file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Por favor, selecione apenas arquivos de imagem.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                displayImage(card, e.target.result);
+            }
+            reader.readAsDataURL(file);
         }
 
         function displayImage(card, src) {
             const container = card.querySelector('.image-preview-container');
             const img = container.querySelector('img');
             const prompt = card.querySelector('.image-prompt');
+            const uploadBtn = container.querySelector('.btn-upload-file');
+            
             img.src = src;
             img.style.display = 'block';
             if(prompt) prompt.style.display = 'none';
+            if(uploadBtn) uploadBtn.style.display = 'none';
         }
 
         function removeImage(btn) {
             const card = btn.parentElement;
-            const img = card.querySelector('img');
-            const prompt = card.querySelector('.image-prompt');
+            const container = card.querySelector('.image-preview-container');
+            const img = container.querySelector('img');
+            const prompt = container.querySelector('.image-prompt');
+            const uploadBtn = container.querySelector('.btn-upload-file');
             const fileInput = card.querySelector('input[type="file"]');
+            
             img.src = '';
             img.style.display = 'none';
             if(prompt) prompt.style.display = 'block';
+            if(uploadBtn) uploadBtn.style.display = 'block';
             if(fileInput) fileInput.value = '';
         }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const container = e.currentTarget;
+            container.classList.remove('dragover');
+            
+            const card = container.parentElement;
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0) {
+                processFile(card, files[0]);
+            }
+        }
+
+        // Suporte para colar imagem via Ctrl+V no documento ou card
+        document.addEventListener('paste', function(e) {
+            const items = e.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const blob = items[i].getAsFile();
+                    // Procura o último card de imagem focado ou pega o primeiro vazio
+                    const cards = document.querySelectorAll('.image-card');
+                    for (let card of cards) {
+                        const img = card.querySelector('img');
+                        if (!img.src || img.style.display === 'none') {
+                            processFile(card, blob);
+                            e.preventDefault();
+                            break;
+                        }
+                    }
+                }
+            }
+        });
 
         function addImageCard() {
             imgCount++;
@@ -691,4 +790,68 @@
             const card = document.createElement('div');
             card.className = 'image-card';
             card.innerHTML = `
-                <button class="btn-remove-img" onclick="removeImage(this)">✕</
+                <button class="btn-remove-img" onclick="removeImage(this)">✕</button>
+                <div class="image-preview-container" 
+                     ondragover="handleDragOver(event)" 
+                     ondragleave="handleDragLeave(event)" 
+                     ondrop="handleDrop(event)" 
+                     onclick="triggerImageUpload(this)">
+                    <div class="image-prompt">
+                        📷 <strong>Imagem ${String(imgCount).padStart(2, '0')} - Amostra / Evidência</strong><br>
+                        Arraste ou cole (Ctrl+V) a foto aqui
+                    </div>
+                    <button type="button" class="btn-upload-file" onclick="event.stopPropagation(); triggerImageUploadFromBtn(this);">Selecionar Imagem</button>
+                    <img src="" style="display:none;">
+                </div>
+                <input type="file" accept="image/*" style="display:none;" onchange="handleFileSelect(this)">
+                <input type="text" class="image-caption" placeholder="Legenda / Descrição da Imagem ${String(imgCount).padStart(2, '0')}...">
+            `;
+            grid.appendChild(card);
+        }
+
+        function saveJSON() {
+            const data = {
+                cliente: document.getElementById('cliente').value,
+                tipo_material: document.getElementById('tipo_material').value,
+                tipo_processo: document.getElementById('tipo_processo').value,
+                qtd_homologada: document.getElementById('qtd_homologada').value,
+                data_homologacao: document.getElementById('data_homologacao').value,
+                resp_homologacao: document.getElementById('resp_homologacao').value,
+                obs_identificacao: document.getElementById('obs_identificacao').value,
+                obs_resultado: document.getElementById('obs_resultado').value,
+                justificativa_conclusao: document.getElementById('justificativa_conclusao').value
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'form86_dados.json';
+            a.click();
+        }
+
+        function loadJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(data.cliente) document.getElementById('cliente').value = data.cliente;
+                    if(data.tipo_material) document.getElementById('tipo_material').value = data.tipo_material;
+                    if(data.tipo_processo) document.getElementById('tipo_processo').value = data.tipo_processo;
+                    if(data.qtd_homologada) document.getElementById('qtd_homologada').value = data.qtd_homologada;
+                    if(data.data_homologacao) document.getElementById('data_homologacao').value = data.data_homologacao;
+                    if(data.resp_homologacao) document.getElementById('resp_homologacao').value = data.resp_homologacao;
+                    if(data.obs_identificacao) document.getElementById('obs_identificacao').value = data.obs_identificacao;
+                    if(data.obs_resultado) document.getElementById('obs_resultado').value = data.obs_resultado;
+                    if(data.justificativa_conclusao) document.getElementById('justificativa_conclusao').value = data.justificativa_conclusao;
+                    alert('Dados carregados com sucesso!');
+                } catch(err) {
+                    alert('Erro ao ler o arquivo JSON.');
+                }
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
