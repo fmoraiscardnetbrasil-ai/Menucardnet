@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Requisição e Controle de Passagens (RESTRITO)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- html2pdf.js para Download Automático de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- SheetJS (XLSX) para Leitura e Upload de Planilhas Excel e CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+            font-size: 0.8125rem;
+        }
+
+        /* Estilos Exatos para Impressão Nativa A4 (Página Única Limpa) */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+            body, html {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 210mm;
+                height: 297mm;
+                overflow: hidden !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .print-preview-container {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                max-height: 297mm !important;
+                box-sizing: border-box !important;
+                background: #ffffff !important;
+                page-break-before: avoid !important;
+                page-break-after: avoid !important;
+                page-break-inside: avoid !important;
+                overflow: hidden !important;
+            }
+        }
+
+        .print-only {
+            display: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- CABEÇALHO DA INTERFACE (TELA) -->
+    <header class="bg-slate-900 text-white shadow-md no-print sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex flex-wrap justify-between items-center gap-2">
+            <div class="flex items-center space-x-3">
+                <!-- LOGO CARDNET NA TELA -->
+                <div class="bg-white px-2 py-1 rounded border border-slate-200 flex flex-col items-start leading-none">
+                    <span class="font-extrabold text-slate-800 tracking-tighter text-sm">CARD<span class="text-amber-500 font-extrabold text-base">N</span>ET<span class="text-[8px] align-top">®</span></span>
+                    <span class="text-[6px] text-slate-400 font-medium tracking-tight">soluções em cartões</span>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xs uppercase tracking-wide leading-tight text-slate-100">Requisição de Passagens</h1>
+                    <p class="text-[9px] text-slate-400">Controle de Estoque e Emissão de Vouchers</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <!-- Botão de Upload de Planilha (Excel / CSV) -->
+                <label for="inputUploadPlanilha" class="bg-amber-600 hover:bg-amber-700 text-white border border-amber-500 text-[10px] font-bold px-2.5 py-1 rounded flex items-center gap-1.5 cursor-pointer shadow-sm transition">
+                    <i class="fa-solid fa-file-excel text-[11px]"></i> Carregar Planilha (.csv / .xlsx)
+                </label>
+                <input type="file" id="inputUploadPlanilha" accept=".csv, .xlsx, .xls" class="hidden" onchange="processarUploadPlanilha(event)">
+
+                <!-- Status da Conexão do Banco de Dados -->
+                <span id="statusBancoDados" class="bg-emerald-900/80 text-emerald-300 border border-emerald-700 text-[10px] font-medium px-2 py-0.5 rounded flex items-center gap-1 shadow-sm">
+                    <i class="fa-solid fa-database text-[9px] text-emerald-400"></i> <span id="textoStatusBanco">Banco Conectado (171 itens)</span>
+                </span>
+                <span class="bg-red-900/90 text-red-200 border border-red-700 text-[10px] font-semibold px-2 py-0.5 rounded tracking-wider flex items-center gap-1 shadow-sm">
+                    <i class="fa-solid fa-shield-halved text-[9px]"></i> CLASSIFICAÇÃO: RESTRITO
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 mt-2.5 space-y-2.5">
+
+        <!-- BLOCO 1: DADOS DO SOLICITANTE E REQUISIÇÃO (SEM NUMERAÇÃO) -->
+        <section class="bg-white rounded-lg shadow-sm border border-slate-200 p-2.5 print-shadow-none">
+            <h2 class="text-[10px] font-bold text-slate-600 uppercase tracking-wider border-b pb-1 mb-2 flex items-center gap-1.5">
+                <i class="fa-solid fa-user text-blue-600 no-print"></i> DADOS DA REQUIÇÃO E SOLICITANTE
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <div>
+                    <label class="block text-[10px] font-medium text-slate-600 mb-0.5">Nome do Solicitante <span class="text-red-500">*</span></label>
+                    <input type="text" id="solicitanteNome" list="historicoSolicitantes" placeholder="Digite o nome completo" uppercase-input class="uppercase w-full text-[11px] border border-slate-300 rounded p-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition" oninput="this.value = this.value.toUpperCase()">
+                    <datalist id="historicoSolicitantes"></datalist>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-medium text-slate-600 mb-0.5">Setor / Departamento <span class="text-red-500">*</span></label>
+                    <input type="text" id="solicitanteSetor" list="historicoSetores" value="VIA NOVA" placeholder="Ex: VIA NOVA" uppercase-input class="uppercase w-full text-[11px] border border-slate-300 rounded p-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition" oninput="this.value = this.value.toUpperCase()">
+                    <datalist id="historicoSetores">
+                        <option value="VIA NOVA"></option>
+                    </datalist>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-medium text-slate-600 mb-0.5">Data da Solicitação</label>
+                    <input type="date" id="solicitanteData" class="w-full text-[11px] border border-slate-300 rounded p-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                </div>
+                <div class="md:col-span-3">
+                    <label class="block text-[10px] font-medium text-slate-600 mb-0.5">Observações / Finalidade</label>
+                    <input type="text" id="solicitanteObs" list="historicoObs" value="RETIRADA COFRE" placeholder="Ex: RETIRADA COFRE" uppercase-input class="uppercase w-full text-[11px] border border-slate-300 rounded p-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition" oninput="this.value = this.value.toUpperCase()">
+                    <datalist id="historicoObs">
+                        <option value="RETIRADA COFRE"></option>
+                    </datalist>
+                </div>
+            </div>
+        </section>
+
+        <!-- BLOCO 2: FORMULÁRIO DE SELEÇÃO E QUANTIDADES (NO-PRINT - SEM NUMERAÇÃO) -->
+        <section class="bg-white rounded-lg shadow-sm border border-slate-200 p-2.5 no-print">
+            <h2 class="text-[10px] font-bold text-slate-600 uppercase tracking-wider border-b pb-1 mb-2 flex items-center gap-1.5">
+                <i class="fa-solid fa-cart-plus text-blue-600"></i> INCLUIR ITEM NA SOLICITAÇÃO
+            </h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-2 items-end">
+                <!-- Busca / Seleção por Código ou Descrição da Passagem -->
+                <div class="lg:col-span-5 relative">
+                    <label class="block text-[10px] font-medium text-slate-600 mb-0.5">Pesquisar Código ou Passagem <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <input type="text" id="buscaPassagem" placeholder="Digite o código ou nome..." autocomplete="off" oninput="filtrarPassagens()" class="w-full text-[11px] border border-slate-300 rounded p-1.5 pl-7 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                        <i class="fa-solid fa-search absolute left-2 top-2 text-slate-400 text-[10px]"></i>
+                    </div>
+                    <!-- Menu suspenso de busca -->
+                    <div id="dropdownPassagens" class="hidden absolute left-0 right-0 top-full mt-0.5 bg-white border border-slate-300 rounded-lg shadow-xl max-h-52 overflow-y-auto z-50">
+                        <!-- Itens renderizados via JS -->
+                    </div>
+                </div>
+
+                <!-- Quantidade Atual Estoque (Inserção Manual) -->
+                <div class="lg:col-span-2">
+                    <label class="block text-[10px] font-medium text-slate-600 mb-0.5">Qtd Atual Estoque <span class="text-red-500">*</span></label>
+                    <input type="number" id="inputEstoqueAtual" min="0" placeholder="0" oninput="calcularValores()" class="w-full text-[11px] border border-slate-300 rounded p-1.5 text-center font-bold text-slate-800 focus:ring-1 focus:ring-blue-500 outline-none">
+                </div>
+
+                <!-- Quantidade Solicitada (Inserção Manual) -->
+                <div class="lg:col-span-2">
+                    <label class="block text-[10px] font-medium text-slate-600 mb-0.5">Qtd Solicitada <span class="text-red-500">*</span></label>
+                    <input type="number" id="inputQtdSolicitada" min="1" placeholder="0" oninput="calcularValores()" class="w-full text-[11px] border border-slate-300 rounded p-1.5 text-center font-bold text-blue-700 focus:ring-1 focus:ring-blue-500 outline-none">
+                </div>
+
+                <!-- Quantidade Após Retirada (Calculado e Desabilitado) -->
+                <div class="lg:col-span-2">
+                    <label class="block text-[10px] font-medium text-slate-600 mb-0.5">Qtd Após Retirada</label>
+                    <input type="number" id="inputQtdAposRetirada" disabled readOnly value="0" class="w-full text-[11px] border border-slate-300 bg-slate-100 rounded p-1.5 text-center font-extrabold text-slate-800 cursor-not-allowed">
+                </div>
+
+                <!-- Botão Adicionar -->
+                <div class="lg:col-span-1">
+                    <button onclick="adicionarItem()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-2 rounded transition flex items-center justify-center gap-1 text-[11px] shadow-sm">
+                        <i class="fa-solid fa-plus text-[9px]"></i> Add
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alerta visual se Qtd Solicitada > Estoque Atual -->
+            <div id="alertaEstoque" class="hidden mt-2 p-1.5 bg-amber-50 border border-amber-300 text-amber-800 text-[10px] rounded flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-xs"></i>
+                <span><strong>Atenção:</strong> Quantidade Solicitada é maior que o Estoque Atual! Saldo ficará negativo.</span>
+            </div>
+        </section>
+
+        <!-- BLOCO 3: TABELA DE ITENS DA REQUISIÇÃO (SEM NUMERAÇÃO - COMPACTA PARA +20 ITENS) -->
+        <section class="bg-white rounded-lg shadow-sm border border-slate-200 p-2.5 print-shadow-none">
+            <div class="flex justify-between items-center border-b pb-1 mb-2">
+                <h2 class="text-[10px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-check text-blue-600 no-print"></i> RELAÇÃO DE PASSAGENS SOLICITADAS
+                </h2>
+                <span id="totalItensBadge" class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    0 itens
+                </span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-700 uppercase tracking-wider border-b border-slate-300 text-[9px]">
+                            <th class="py-1 px-1.5 text-center w-12">Código</th>
+                            <th class="py-1 px-1.5">Passagem / Linha</th>
+                            <th class="py-1 px-1.5 text-center w-28">Qtd Atual Estoque</th>
+                            <th class="py-1 px-1.5 text-center w-28 text-blue-800 bg-blue-50/50">Qtd Solicitada</th>
+                            <th class="py-1 px-1.5 text-center w-28">Qtd Após Retirada</th>
+                            <th class="py-1 px-1.5 text-center w-10 no-print">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaItensSolicitados" class="divide-y divide-slate-200">
+                        <!-- Itens renderizados dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mensagem quando tabela vazia -->
+            <div id="carrinhoVazio" class="text-center py-4 text-slate-400">
+                <i class="fa-solid fa-ticket text-xl mb-1"></i>
+                <p class="text-[11px]">Nenhuma passagem adicionada à solicitação até o momento.</p>
+            </div>
+        </section>
+
+        <!-- BLOCO 4: ÁREA DE ASSINATURAS (FIXADA NA PARTE INFERIOR E COMPACTA) -->
+        <section class="bg-white rounded-lg shadow-sm border border-slate-200 p-2 print-shadow-none print-break-inside-avoid mt-2">
+            <h2 class="text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-3">TERMO DE ENTREGA E RECEBIMENTO</h2>
+            
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div>
+                    <div class="border-b border-slate-900 mb-0.5"></div>
+                    <p class="text-[10px] font-bold text-slate-900" id="assNomeSolicitante">Solicitante: -</p>
+                    <p class="text-[8px] text-slate-500">Declaro ter recebido as passagens acima especificadas</p>
+                </div>
+                <div>
+                    <div class="border-b border-slate-900 mb-0.5"></div>
+                    <p class="text-[10px] font-bold text-slate-900">Assinatura do Responsável pela Entrega Cofre</p>
+                    <p class="text-[8px] text-slate-500">Visto de Liberação e Conferência do Pedido</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAINEL DE BOTÕES E AÇÕES (NO-PRINT) -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-300 no-print">
+            <button onclick="limparLista()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium px-3 py-1.5 rounded text-[11px] transition flex items-center gap-1.5">
+                <i class="fa-solid fa-trash-can text-[10px]"></i> Limpar Lista
+            </button>
+
+            <button onclick="imprimirSolicitacao()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-1.5 rounded text-[11px] transition flex items-center gap-1.5 shadow-md">
+                <i class="fa-solid fa-file-pdf text-[10px]"></i> Imprimir e Baixar PDF Automático
+            </button>
+        </div>
+
+    </main>
+
+    <!-- CONTAINER VISÍVEL DINÂMICO PARA CAPTURA EXATA DO PDF E IMPRESSÃO -->
+    <div id="printContainerDirect" class="print-only"></div>
+
+    <!-- NOTIFICAÇÃO TOAST -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-3 py-2 rounded-lg shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 no-print flex items-center gap-2 z-50 text-xs">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+        <span id="toastMessage">Mensagem</span>
+    </div>
+
+    <script>
+        // BANCO DE DADOS INTEGRALMENTE PREENCHIDO COM OS 171 ITENS FIÉIS DA PLANILHA ENVIADA
+        let BANCO_PASSAGENS = [
+            {"codigo":"40148","passagem":"1 - Santos / São Paulo (Jabaquara) Sem Seguro Cometa","estoqueInicial":59},
+            {"codigo":"40152","passagem":"2 - Taubaté / São Paulo","estoqueInicial":4},
+            {"codigo":"40159","passagem":"3 - Santos / São Vicente - Associaçao Dos Mestres Barca Catraia","estoqueInicial":59},
+            {"codigo":"40162","passagem":"4 - Campinas / São Paulo - Intermunicipal - Cometa (Papel) C/Seguro","estoqueInicial":3},
+            {"codigo":"40164","passagem":"5 - Papel Atibaia / São Paulo - Intermunicipal - Viação Atibaia (Papel) - Com Seguro","estoqueInicial":10},
+            {"codigo":"40165","passagem":"6 - Praia Grande (Vila Mirim) / São Paulo (Jab) - Cometa (Papel) - C/Seguro","estoqueInicial":0},
+            {"codigo":"40172","passagem":"8 - Praia Grande / Sp Piracicabana Sem Seguro","estoqueInicial":15},
+            {"codigo":"40177","passagem":"9 - São Paulo / Sorocaba - Cometa (Papel) C/Seguro","estoqueInicial":2},
+            {"codigo":"40186","passagem":"10 - Bragança Paulista / São Paulo - Viação Bragança","estoqueInicial":3},
+            {"codigo":"40217","passagem":"11 - Peruíbe / São Paulo Piracicaba Com Seguro","estoqueInicial":21},
+            {"codigo":"40219","passagem":"12 - Santos / São Paulo (Jabaquara) C/Seguro Cometa","estoqueInicial":268},
+            {"codigo":"40224","passagem":"13 - Itanhaém / São Paulo Piracicaba Com Seguro","estoqueInicial":8},
+            {"codigo":"40225","passagem":"14 - São Vicente / São Paulo Piracicabana Com Seguro","estoqueInicial":14},
+            {"codigo":"40226","passagem":"15 - Peruíbe / Santos Breda Com Seguro","estoqueInicial":6},
+            {"codigo":"40227","passagem":"16 - Itanhaém / Santos Breda Com Seguro","estoqueInicial":17},
+            {"codigo":"40228","passagem":"17 - Mongaguá / Santos Breda Com Seguro","estoqueInicial":25},
+            {"codigo":"40229","passagem":"18 - Praia Grande / Santos Breda Com Seguro","estoqueInicial":6},
+            {"codigo":"40230","passagem":"19 - Mongaguá / São Paulo Piracicabana Com Seguro","estoqueInicial":11},
+            {"codigo":"40232","passagem":"20 - Bertioga / Santos Viação Ultra Com Seguro","estoqueInicial":36},
+            {"codigo":"40233","passagem":"21 - São Paulo / Jacareí - Jacareí (Papel) C/Seguro","estoqueInicial":2},
+            {"codigo":"40236","passagem":"22 - Bertioga / São Paulo Viação Ultra Com Seguro","estoqueInicial":0},
+            {"codigo":"40237","passagem":"23 - São José Dos Campos / São Paulo - Cometa (Papel) C/Seguro","estoqueInicial":20},
+            {"codigo":"40240","passagem":"24 - Guaratinguetá / São Paulo - Cometa (Papel) C/Seguro","estoqueInicial":2},
+            {"codigo":"40242","passagem":"25 - Mogi Das Cruzes / São Paulo - Pássaro Marron (Papel)","estoqueInicial":1},
+            {"codigo":"40243","passagem":"26 - São Roque / São Paulo - Cometa (Papel) C/Seguro","estoqueInicial":10},
+            {"codigo":"40244","passagem":"27 - Lorena / São Paulo Cometa Com Seguro","estoqueInicial":0},
+            {"codigo":"40245","passagem":"28 - São Paulo / Pindamonhangaba Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40248","passagem":"29 - Caçapava / São Paulo Cometa C/Seguro","estoqueInicial":1},
+            {"codigo":"40249","passagem":"30 - Itapetininga / São Paulo Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40250","passagem":"31 - Tatuí / São Paulo Cometa C/Seguro","estoqueInicial":4},
+            {"codigo":"40251","passagem":"32 - São Roque / Sorocaba Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40252","passagem":"33 - Cotia / Sorocaba Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40253","passagem":"34 - Porto Feliz / Sorocaba Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40254","passagem":"35 - Salto / Sorocaba Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40255","passagem":"36 - Tietê / Sorocaba Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40256","passagem":"37 - Itu / Sorocaba Viação Vianorte C/Seguro","estoqueInicial":0},
+            {"codigo":"40257","passagem":"38 - Indaiatuba / Sorocaba Viação Vianorte C/Seguro","estoqueInicial":0},
+            {"codigo":"40258","passagem":"39 - Capivari / Sorocaba Viação Vianorte C/Seguro","estoqueInicial":0},
+            {"codigo":"40259","passagem":"40 - Piracicaba / Sorocaba Viação Vianorte C/Seguro","estoqueInicial":0},
+            {"codigo":"40260","passagem":"41 - São Paulo / Limeira Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40261","passagem":"42 - São Paulo / Rio Claro Cometa C/Seguro","estoqueInicial":1},
+            {"codigo":"40262","passagem":"43 - São Paulo / Araraquara Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40263","passagem":"44 - São Paulo / São Carlos Cometa C/Seguro","estoqueInicial":1},
+            {"codigo":"40264","passagem":"45 - São Paulo / Ribeirão Preto Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40265","passagem":"46 - São Paulo / Franca Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40266","passagem":"47 - São Paulo / Jaboticabal Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40267","passagem":"48 - São Paulo / Bebedouro Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40268","passagem":"49 - São Paulo / Catanduva Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40269","passagem":"50 - São Paulo / São José Do Rio Preto Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40270","passagem":"51 - São Paulo / Votuporanga Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40271","passagem":"52 - São Paulo / Fernandópolis Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40272","passagem":"53 - São Paulo / Jales Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40273","passagem":"54 - São Paulo / Barretos Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40274","passagem":"55 - São Paulo / Olímpia Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40275","passagem":"56 - São Paulo / Sertãozinho Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40278","passagem":"59 - São Paulo / Lins Reunião C/Seguro","estoqueInicial":0},
+            {"codigo":"40282","passagem":"63 - São Paulo / Ourinhos Avaré C/Seguro","estoqueInicial":0},
+            {"codigo":"40283","passagem":"64 - São Paulo / Assis Avaré C/Seguro","estoqueInicial":0},
+            {"codigo":"40286","passagem":"67 - São Paulo / Presidente Prudente Andorinha C/Seguro","estoqueInicial":0},
+            {"codigo":"40289","passagem":"70 - São Paulo / Cruzeiro Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40290","passagem":"71 - São Paulo / Aparecida Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40292","passagem":"73 - São Paulo / Caraguatatuba Litorânea C/Seguro","estoqueInicial":1},
+            {"codigo":"40293","passagem":"74 - São Paulo / São Sebastião Litorânea C/Seguro","estoqueInicial":0},
+            {"codigo":"40294","passagem":"75 - São Paulo / Ubatuba Litorânea C/Seguro","estoqueInicial":0},
+            {"codigo":"40295","passagem":"76 - Santos / Caraguatatuba Litorânea C/Seguro","estoqueInicial":0},
+            {"codigo":"40296","passagem":"77 - Santos / São Sebastião Litorânea C/Seguro","estoqueInicial":0},
+            {"codigo":"40297","passagem":"78 - Santos / Ubatuba Litorânea C/Seguro","estoqueInicial":0},
+            {"codigo":"40298","passagem":"79 - São José Dos Campos / Caraguatatuba Litorânea C/Seguro","estoqueInicial":0},
+            {"codigo":"40299","passagem":"80 - São José Dos Campos / São Sebastião Litorânea C/Seguro","estoqueInicial":0},
+            {"codigo":"40300","passagem":"81 - São José Dos Campos / Ubatuba Litorânea C/Seguro","estoqueInicial":0},
+            {"codigo":"40301","passagem":"82 - Taubaté / Caraguatatuba Litorânea C/Seguro","estoqueInicial":0},
+            {"codigo":"40302","passagem":"83 - Taubaté / São Sebastião Litorânea C/Seguro","estoqueInicial":0},
+            {"codigo":"40303","passagem":"84 - Taubaté / Ubatuba Litorânea C/Seguro","estoqueInicial":0},
+            {"codigo":"40304","passagem":"85 - São Paulo / Campos Do Jordão Pássaro Marron C/Seguro","estoqueInicial":0},
+            {"codigo":"40308","passagem":"89 - São Paulo / Amparo Rápido Fenix C/Seguro","estoqueInicial":0},
+            {"codigo":"40309","passagem":"90 - São Paulo / Serra Negra Rápido Fenix C/Seguro","estoqueInicial":0},
+            {"codigo":"40310","passagem":"91 - São Paulo / Águas De Lindóia Rápido Fenix C/Seguro","estoqueInicial":0},
+            {"codigo":"40311","passagem":"92 - São Paulo / Socorro Rápido Fenix C/Seguro","estoqueInicial":0},
+            {"codigo":"40312","passagem":"93 - São Paulo / Itatiba Rápido Fenix C/Seguro","estoqueInicial":0},
+            {"codigo":"40317","passagem":"98 - São Paulo / Capivari Rápido Fenix C/Seguro","estoqueInicial":0},
+            {"codigo":"40318","passagem":"99 - São Paulo / Piracicaba Rápido Fenix C/Seguro","estoqueInicial":0},
+            {"codigo":"40321","passagem":"102 - São Paulo / Botucatu Santa Maria C/Seguro","estoqueInicial":0},
+            {"codigo":"40322","passagem":"103 - São Paulo / Avaré Santa Maria C/Seguro","estoqueInicial":0},
+            {"codigo":"40323","passagem":"104 - São Paulo / Bauru Santa Maria C/Seguro","estoqueInicial":0},
+            {"codigo":"40324","passagem":"105 - São Paulo / Jaú Santa Maria C/Seguro","estoqueInicial":0},
+            {"codigo":"40325","passagem":"106 - São Paulo / Marília Santa Maria C/Seguro","estoqueInicial":0},
+            {"codigo":"40328","passagem":"109 - São Paulo / Registro Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40329","passagem":"110 - São Paulo / Juquiá Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40330","passagem":"111 - São Paulo / Miracatu Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40331","passagem":"112 - São Paulo / Pariquera Açu Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40332","passagem":"113 - São Paulo / Jacupiranga Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40333","passagem":"114 - São Paulo / Cananéia Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40334","passagem":"115 - São Paulo / Iguape Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40335","passagem":"116 - Santos / Registro Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40336","passagem":"117 - Santos / Juquiá Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40337","passagem":"118 - Santos / Miracatu Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40338","passagem":"119 - Santos / Pariquera Açu Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40339","passagem":"120 - Santos / Jacupiranga Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40340","passagem":"121 - Santos / Cananéia Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40341","passagem":"122 - Santos / Iguape Princesa Do Vale C/Seguro","estoqueInicial":0},
+            {"codigo":"40356","passagem":"137 - Santos / Cubatão Ultra C/Seguro","estoqueInicial":0},
+            {"codigo":"40357","passagem":"138 - São Vicente / Cubatão Ultra C/Seguro","estoqueInicial":0},
+            {"codigo":"40358","passagem":"139 - Praia Grande / Cubatão Ultra C/Seguro","estoqueInicial":0},
+            {"codigo":"40361","passagem":"142 - São Paulo / Valinhos Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40362","passagem":"143 - São Paulo / Vinhedo Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40365","passagem":"146 - Santos / Mogi Das Cruzes Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40366","passagem":"147 - Santos / São José Dos Campos Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40367","passagem":"148 - Santos / Taubaté Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40368","passagem":"149 - Santos / Sorocaba Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40369","passagem":"150 - Santos / Campinas Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40370","passagem":"151 - Santos / Jundiaí Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40371","passagem":"152 - Santos / Piracicaba Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40372","passagem":"153 - Santos / Ribeirão Preto Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40373","passagem":"154 - Santos / São Carlos Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40374","passagem":"155 - Santos / Araraquara Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40375","passagem":"156 - Santos / Bauru Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40376","passagem":"157 - Santos / Marília Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40377","passagem":"158 - Santos / Presidente Prudente Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40378","passagem":"159 - Campinas / Jundiaí Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40379","passagem":"160 - Campinas / Sorocaba Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40380","passagem":"161 - Campinas / Piracicaba Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40381","passagem":"162 - Campinas / Ribeirão Preto Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40382","passagem":"163 - Sorocaba / Jundiaí Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40383","passagem":"164 - Sorocaba / Piracicaba Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40384","passagem":"165 - Sorocaba / Ribeirão Preto Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40385","passagem":"166 - Ribeirão Preto / Franca Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40386","passagem":"167 - Ribeirão Preto / Araraquara Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40387","passagem":"168 - Ribeirão Preto / São Carlos Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40388","passagem":"169 - Ribeirão Preto / São José Do Rio Preto Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40389","passagem":"170 - São José Do Rio Preto / Catanduva Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40390","passagem":"171 - São José Do Rio Preto / Votuporanga Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40391","passagem":"172 - São José Do Rio Preto / Barretos Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"40392","passagem":"173 - São José Do Rio Preto / Araçatuba Cometa C/Seguro","estoqueInicial":0},
+            {"codigo":"42177","passagem":"174 - Taubaté / São José dos Campos - Pássaro Marron","estoqueInicial":0},
+            {"codigo":"42500","passagem":"175 - Viradouro / Sertãozinho - Rápido D'Oeste","estoqueInicial":2},
+            {"codigo":"42501","passagem":"176 - Terra Roxa / Viradouro - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42502","passagem":"177 - Bebedouro / Viradouro - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42503","passagem":"178 - Pitangueiras / Sertãozinho - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42504","passagem":"179 - Pontal / Sertãozinho - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42505","passagem":"180 - Jaboticabal / Sertãozinho - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42506","passagem":"181 - Barrinha / Sertãozinho - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42507","passagem":"182 - Morro Agudo / Orlândia - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42508","passagem":"183 - São Joaquim da Barra / Orlândia - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42509","passagem":"184 - Ipuã / Orlândia - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42510","passagem":"185 - Guará / Ituverava - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42511","passagem":"186 - Aramina / Ituverava - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42512","passagem":"187 - Igarapava / Ituverava - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42513","passagem":"188 - Buritizal / Ituverava - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42514","passagem":"189 - Jeriquara / Franca - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42515","passagem":"190 - Cristais Paulista / Franca - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42516","passagem":"191 - Pedregulho / Franca - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42517","passagem":"192 - Rifaina / Franca - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42518","passagem":"193 - São José da Bela Vista / Franca - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42519","passagem":"194 - Patrocínio Paulista / Franca - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42520","passagem":"195 - Itirapuã / Franca - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42521","passagem":"196 - Restinga / Franca - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42522","passagem":"197 - Batatais / Franca - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42523","passagem":"198 - Altinópolis / Batatais - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42524","passagem":"199 - Santo Antônio da Alegria / Batatais - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42525","passagem":"200 - Brodowski / Batatais - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42526","passagem":"201 - Jardinópolis / Ribeirão Preto - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42527","passagem":"202 - Serrana / Ribeirão Preto - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42528","passagem":"203 - São Simão / Ribeirão Preto - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42529","passagem":"204 - Luiz Antônio / Ribeirão Preto - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42530","passagem":"205 - Santa Rosa de Viterbo / Ribeirão Preto - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42531","passagem":"206 - Cajuru / Ribeirão Preto - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42532","passagem":"207 - Cássia dos Coqueiros / Ribeirão Preto - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42533","passagem":"208 - Cravinhos / Ribeirão Preto - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42534","passagem":"209 - Serra Azul / Ribeirão Preto - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42535","passagem":"210 - Guatapará / Ribeirão Preto - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42536","passagem":"211 - Pratápolis / Passos - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42537","passagem":"212 - Itaú de Minas / Passos - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42538","passagem":"213 - São Sebastião do Paraíso / Passos - Rápido D'Oeste","estoqueInicial":0},
+            {"codigo":"42539","passagem":"214 - São Tomás de Aquino / Passos - Rápido D'Oeste","estoqueInicial":0}
+        ];
+
+        // INICIALIZAÇÃO DOS EVENTOS E REQUISITOS AO CARREGAR A PÁGINA
+        let passagemSelecionada = null;
+        let solicitacaoItens = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Preenche data atual automaticamente
+            document.getElementById('solicitanteData').value = new Date().toISOString().slice(0, 10);
+            
+            // Ativa o ouvinte para a busca de passagens
+            const inputBusca = document.getElementById('buscaPassagem');
+            if (inputBusca) {
+                inputBusca.addEventListener('focus', filtrarPassagens);
+                inputBusca.addEventListener('keyup', filtrarPassagens);
+            }
+
+            // Oculta menu suspenso se clicar fora do campo
+            document.addEventListener('click', function(e) {
+                const dropdown = document.getElementById('dropdownPassagens');
+                const busca = document.getElementById('buscaPassagem');
+                if (dropdown && busca && !busca.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            // Atualiza automaticamente o nome do solicitante no rodapé em tempo real
+            const inputNome = document.getElementById('solicitanteNome');
+            if (inputNome) {
+                inputNome.addEventListener('input', function() {
+                    const elAss = document.getElementById('assNomeSolicitante');
+                    if (elAss) elAss.innerText = `Solicitante: ${this.value.trim().toUpperCase() || '-'}`;
+                });
+            }
+
+            atualizarStatusBanco();
+            carregarHistoricos();
+            renderizarTabela();
+        });
+
+        // PROCESSADOR DE UPLOAD DINÂMICO DE PLANILHA (XLS, XLSX OU CSV)
+        function processarUploadPlanilha(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                    if (!jsonRows || jsonRows.length < 2) {
+                        exibirToast('Planilha sem dados suficientes ou em formato inválido.', 'error');
+                        return;
+                    }
+
+                    const novasPassagens = [];
+                    // Processa cada linha preservando todos os caracteres e capturando a quantidade correta da coluna de estoque
+                    for (let i = 1; i < jsonRows.length; i++) {
+                        const row = jsonRows[i];
+                        if (!row || row.length < 2) continue;
+
+                        const cod = String(row[0] || '').trim();
+                        const desc = String(row[1] || '').trim();
+                        
+                        // Tenta extrair a quantidade da coluna 2, ou procura em colunas subsequentes caso exista deslocamento
+                        let est = 0;
+                        for (let c = 2; c < row.length; c++) {
+                            const valNum = parseInt(row[c]);
+                            if (!isNaN(valNum)) {
+                                est = valNum;
+                                break;
+                            }
+                        }
+
+                        if (cod && desc) {
+                            novasPassagens.push({
+                                codigo: cod,
+                                passagem: desc,
+                                estoqueInicial: est
+                            });
+                        }
+                    }
+
+                    if (novasPassagens.length > 0) {
+                        BANCO_PASSAGENS = novasPassagens;
+                        atualizarStatusBanco();
+                        exibirToast(`Banco atualizado com sucesso! (${BANCO_PASSAGENS.length} itens)`, 'success');
+                    } else {
+                        exibirToast('Nenhum item válido encontrado no arquivo.', 'error');
+                    }
+                } catch (err) {
+                    console.error("Erro no processamento da planilha:", err);
+                    exibirToast('Erro ao ler a planilha. Verifique o formato do arquivo.', 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function atualizarStatusBanco() {
+            const txt = document.getElementById('textoStatusBanco');
+            if (txt) txt.innerText = `Banco Conectado (${BANCO_PASSAGENS.length} itens)`;
+        }
+
+        // FILTRO DE BUSCA POR CÓDIGO EXATO OU DESCRIÇÃO
+        function filtrarPassagens() {
+            const input = document.getElementById('buscaPassagem');
+            const dropdown = document.getElementById('dropdownPassagens');
+            if (!input || !dropdown) return;
+
+            const termo = input.value.toLowerCase().trim();
+            
+            const resultados = BANCO_PASSAGENS.filter(p => 
+                p.codigo.toLowerCase().includes(termo) || 
+                p.passagem.toLowerCase().includes(termo)
+            );
+
+            if (resultados.length === 0) {
+                dropdown.innerHTML = `<div class="p-2 text-[10px] text-slate-400 text-center">Nenhum item encontrado com o código/nome "${termo}"</div>`;
+            } else {
+                dropdown.innerHTML = resultados.map(p => `
+                    <div onclick="selecionarPassagem('${p.codigo}')" class="p-2 hover:bg-blue-50 border-b border-slate-100 cursor-pointer transition flex justify-between items-center text-[10px]">
+                        <div>
+                            <span class="font-extrabold text-blue-700">[CÓD: ${p.codigo}]</span>
+                            <span class="text-slate-700 ml-1 font-medium">${p.passagem}</span>
+                        </div>
+                        <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">Estoque: ${p.estoqueInicial}</span>
+                    </div>
+                `).join('');
+            }
+
+            dropdown.classList.remove('hidden');
+        }
+
+        // CARREGAR HISTÓRICOS DIGITADOS
+        function carregarHistoricos() {
+            try {
+                const solicitantes = JSON.parse(localStorage.getItem('hist_solicitantes') || '[]');
+                const setores = JSON.parse(localStorage.getItem('hist_setores') || '["VIA NOVA"]');
+                const obs = JSON.parse(localStorage.getItem('hist_obs') || '["RETIRADA COFRE"]');
+
+                preencherDatalist('historicoSolicitantes', solicitantes);
+                preencherDatalist('historicoSetores', setores);
+                preencherDatalist('historicoObs', obs);
+            } catch (e) {
+                console.error("Erro ao carregar históricos:", e);
+            }
+        }
+
+        function salvarNovoHistorico(nome, setor, ob) {
+            try {
+                if (nome) {
+                    let h = JSON.parse(localStorage.getItem('hist_solicitantes') || '[]');
+                    if (!h.includes(nome)) { h.push(nome); localStorage.setItem('hist_solicitantes', JSON.stringify(h)); }
+                }
+                if (setor) {
+                    let h = JSON.parse(localStorage.getItem('hist_setores') || '[]');
+                    if (!h.includes(setor)) { h.push(setor); localStorage.setItem('hist_setores', JSON.stringify(h)); }
+                }
+                if (ob) {
+                    let h = JSON.parse(localStorage.getItem('hist_obs') || '[]');
+                    if (!h.includes(ob)) { h.push(ob); localStorage.setItem('hist_obs', JSON.stringify(h)); }
+                }
+                carregarHistoricos();
+            } catch (e) {
+                console.error("Erro ao salvar histórico:", e);
+            }
+        }
+
+        function preencherDatalist(id, lista) {
+            const dl = document.getElementById(id);
+            if (!dl) return;
+            dl.innerHTML = lista.map(item => `<option value="${item}"></option>`).join('');
+        }
+
+        // SELEÇÃO E AUTO PREENCHIMENTO DO ESTOQUE INICIAL DA PLANILHA
+        function selecionarPassagem(codigo) {
+            passagemSelecionada = BANCO_PASSAGENS.find(p => p.codigo === codigo);
+            if (!passagemSelecionada) return;
+
+            document.getElementById('buscaPassagem').value = `[${passagemSelecionada.codigo}] ${passagemSelecionada.passagem}`;
+            document.getElementById('dropdownPassagens').classList.add('hidden');
+            
+            // Injeta o valor exato da quantidade de estoque cadastrada na planilha
+            document.getElementById('inputEstoqueAtual').value = passagemSelecionada.estoqueInicial !== undefined ? passagemSelecionada.estoqueInicial : 0;
+
+            document.getElementById('inputQtdSolicitada').focus();
+            calcularValores();
+        }
+
+        // CÁLCULO DA QUANTIDADE APÓS RETIRADA EM TEMPO REAL
+        function calcularValores() {
+            const estoqueAtual = parseInt(document.getElementById('inputEstoqueAtual').value) || 0;
+            const qtdSolicitada = parseInt(document.getElementById('inputQtdSolicitada').value) || 0;
+
+            const aposRetirada = estoqueAtual - qtdSolicitada;
+            const campoApos = document.getElementById('inputQtdAposRetirada');
+            const alerta = document.getElementById('alertaEstoque');
+
+            campoApos.value = aposRetirada;
+
+            if (qtdSolicitada > estoqueAtual) {
+                campoApos.className = "w-full text-sm border border-red-300 bg-red-50 rounded-lg p-2.5 text-center font-extrabold text-red-700 cursor-not-allowed";
+                alerta.classList.remove('hidden');
+            } else {
+                campoApos.className = "w-full text-sm border border-slate-300 bg-slate-100 rounded-lg p-2.5 text-center font-extrabold text-slate-800 cursor-not-allowed";
+                alerta.classList.add('hidden');
+            }
+        }
+
+        // ADICIONAR ITEM À REQUISIÇÃO
+        function adicionarItem() {
+            if (!passagemSelecionada) {
+                exibirToast('Selecione uma passagem na busca primeiro!', 'error');
+                return;
+            }
+
+            const valEstoque = document.getElementById('inputEstoqueAtual').value;
+            const valSolicitada = document.getElementById('inputQtdSolicitada').value;
+
+            if (valEstoque === "" || valSolicitada === "") {
+                exibirToast('Preencha os campos "Estoque Atual" e "Qtd Solicitada"!', 'error');
+                return;
+            }
+
+            const estoqueAtual = parseInt(valEstoque);
+            const qtdSolicitada = parseInt(valSolicitada);
+
+            if (qtdSolicitada <= 0) {
+                exibirToast('A Quantidade Solicitada deve ser maior que zero!', 'error');
+                return;
+            }
+
+            const aposRetirada = estoqueAtual - qtdSolicitada;
+
+            // Adiciona item na lista de requisições
+            solicitacaoItens.push({
+                codigo: passagemSelecionada.codigo,
+                passagem: passagemSelecionada.passagem,
+                estoqueAtual: estoqueAtual,
+                qtdSolicitada: qtdSolicitada,
+                aposRetirada: aposRetirada
+            });
+
+            renderizarTabela();
+            limparFormularioItem();
+            exibirToast('Item adicionado à solicitação com sucesso!', 'success');
+        }
+
+        // REMOVER ITEM DA LISTA
+        function removerItem(index) {
+            solicitacaoItens.splice(index, 1);
+            renderizarTabela();
+            exibirToast('Item removido da solicitação.', 'info');
+        }
+
+        // RENDERIZAR TABELA NA TELA
+        function renderizarTabela() {
+            const tbody = document.getElementById('tabelaItensSolicitados');
+            const carrinhoVazio = document.getElementById('carrinhoVazio');
+            const badge = document.getElementById('totalItensBadge');
+
+            badge.innerText = `${solicitacaoItens.length} ${solicitacaoItens.length === 1 ? 'item' : 'itens'}`;
+
+            if (solicitacaoItens.length === 0) {
+                tbody.innerHTML = '';
+                carrinhoVazio.classList.remove('hidden');
+                return;
+            }
+
+            carrinhoVazio.classList.add('hidden');
+
+            tbody.innerHTML = solicitacaoItens.map((item, index) => {
+                const alertaNegativo = item.aposRetirada < 0;
+                return `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-200 text-[10px]">
+                        <td class="py-1 px-1.5 text-center font-bold text-slate-800">${item.codigo}</td>
+                        <td class="py-1 px-1.5 text-slate-700">${item.passagem}</td>
+                        <td class="py-1 px-1.5 text-center font-medium text-slate-700">${item.estoqueAtual}</td>
+                        <td class="py-1 px-1.5 text-center font-bold text-blue-700 bg-blue-50/50">${item.qtdSolicitada}</td>
+                        <td class="py-1 px-1.5 text-center font-extrabold ${alertaNegativo ? 'text-red-600 bg-red-50' : 'text-slate-800'}">
+                            ${item.aposRetirada}
+                        </td>
+                        <td class="py-1 px-1.5 text-center no-print">
+                            <button onclick="removerItem(${index})" class="text-slate-400 hover:text-red-600 transition p-0.5" title="Remover item">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // LIMPAR FORMULÁRIO DE ITEM
+        function limparFormularioItem() {
+            document.getElementById('buscaPassagem').value = '';
+            document.getElementById('inputEstoqueAtual').value = '';
+            document.getElementById('inputQtdSolicitada').value = '';
+            document.getElementById('inputQtdAposRetirada').value = '0';
+            document.getElementById('alertaEstoque').classList.add('hidden');
+            passagemSelecionada = null;
+        }
+
+        // LIMPAR TODA A LISTA
+        function limparLista() {
+            if (solicitacaoItens.length === 0) return;
+            solicitacaoItens = [];
+            renderizarTabela();
+            exibirToast('Lista de solicitações limpa.', 'info');
+        }
+
+        // MONTA O HTML UNIFICADO E IDÊNTICO PARA PDF E IMPRESSÃO (PÁGINA ÚNICA AJUSTADA)
+        function gerarDocumentoHTML(nomeSolicitante, setorSolicitante, dataFormatada, obsSolicitacao, dataHoraAtual) {
+            const nomeFinal = nomeSolicitante || '-';
+            return `
+                <div class="print-preview-container" style="width: 210mm; height: 297mm; max-height: 297mm; margin: 0; padding: 10mm 12mm; background-color: #ffffff; font-family: 'Inter', sans-serif; color: #0f172a; box-sizing: border-box; font-size: 7.5pt; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; page-break-before: avoid; page-break-after: avoid; page-break-inside: avoid;">
+                    
+                    <!-- CONTEÚDO SUPERIOR -->
+                    <div>
+                        <!-- Cabeçalho Centralizado com Logo CARDNET e Título -->
+                        <div style="display: flex; justify-content: center; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 5px; margin-bottom: 6px; text-align: center;">
+                            <div style="display: flex; align-items: center; gap: 16px; justify-content: center; width: 100%;">
+                                <!-- Logo CARDNET -->
+                                <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1; border-right: 1.5px solid #cbd5e1; padding-right: 14px;">
+                                    <span style="font-weight: 900; font-size: 16px; color: #1e293b; letter-spacing: -0.5px;">CARD<span style="color: #f59e0b; font-weight: 900;">N</span>ET<span style="font-size: 7px; vertical-align: super;">®</span></span>
+                                    <span style="font-size: 5.5px; color: #94a3b8; text-transform: lowercase;">soluções em cartões</span>
+                                </div>
+                                <div>
+                                    <h1 style="font-size: 13px; font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase; letter-spacing: 0.8px;">REQUISIÇÃO DE PASSAGENS</h1>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dados da Requisição exatamente como no PDF de referência -->
+                        <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 5px 10px; margin-bottom: 6px; background-color: #ffffff;">
+                            <h2 style="font-size: 7px; font-weight: 700; color: #475569; text-transform: uppercase; margin: 0 0 3px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                DADOS DA REQUISIÇÃO E SOLICITANTE
+                            </h2>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; font-size: 7pt;">
+                                <div><strong style="color: #64748b;">Solicitante:</strong> <span style="font-weight: 700;">${nomeFinal}</span></div>
+                                <div><strong style="color: #64748b;">Setor/Dep.:</strong> <span style="font-weight: 700;">${setorSolicitante || 'VIA NOVA'}</span></div>
+                                <div><strong style="color: #64748b;">Data Solicitação:</strong> <span style="font-weight: 700;">${dataFormatada}</span></div>
+                                <div style="grid-column: span 3;"><strong style="color: #64748b;">Observações/Finalidade:</strong> <span style="font-weight: 700;">${obsSolicitacao || 'RETIRADA COFRE'}</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Relação de Passagens -->
+                        <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 5px 10px; margin-bottom: 6px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px; margin-bottom: 3px;">
+                                <h2 style="font-size: 7px; font-weight: 700; color: #475569; text-transform: uppercase; margin: 0;">
+                                    RELAÇÃO DE PASSAGENS SOLICITADAS
+                                </h2>
+                                <span style="font-size: 6.5px; font-weight: 800; color: #1e40af; background-color: #dbeafe; padding: 1px 5px; border-radius: 2px;">
+                                    ${solicitacaoItens.length} ${solicitacaoItens.length === 1 ? 'item' : 'itens'}
+                                </span>
+                            </div>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 6.5pt;">
+                                <thead>
+                                    <tr style="background-color: #f1f5f9; text-transform: uppercase; color: #334155; border-bottom: 1px solid #cbd5e1; font-size: 6pt;">
+                                        <th style="padding: 2.5px 4px; text-align: center; width: 50px;">CÓDIGO</th>
+                                        <th style="padding: 2.5px 4px; text-align: left;">PASSAGEM/LINHA</th>
+                                        <th style="padding: 2.5px 4px; text-align: center; width: 75px;">QTD ATUAL ESTOQUE</th>
+                                        <th style="padding: 2.5px 4px; text-align: center; width: 75px; background-color: #eff6ff; color: #1e40af;">QTD SOLICITADA</th>
+                                        <th style="padding: 2.5px 4px; text-align: center; width: 75px;">QTD APÓS RETIRADA</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${solicitacaoItens.map(item => `
+                                        <tr style="border-bottom: 1px solid #f1f5f9; line-height: 1.2;">
+                                            <td style="padding: 2.5px 4px; text-align: center; font-weight: 700;">${item.codigo}</td>
+                                            <td style="padding: 2.5px 4px; text-align: left; font-size: 6pt; text-transform: uppercase;">${item.passagem}</td>
+                                            <td style="padding: 2.5px 4px; text-align: center;">${item.estoqueAtual}</td>
+                                            <td style="padding: 2.5px 4px; text-align: center; font-weight: 800; color: #1e40af; background-color: #eff6ff;">${item.qtdSolicitada}</td>
+                                            <td style="padding: 2.5px 4px; text-align: center; font-weight: 800; ${item.aposRetirada < 0 ? 'color: #dc2626;' : ''}">${item.aposRetirada}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- BLOCOS POSICIONADOS EXATAMENTE NA PARTE INFERIOR ACIMA DO RODAPÉ -->
+                    <div style="margin-top: auto;">
+                        <!-- Termo de Assinaturas com Nome do Solicitante Automático -->
+                        <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; background-color: #ffffff;">
+                            <h2 style="font-size: 6.5px; font-weight: 700; color: #475569; text-transform: uppercase; margin: 0 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                                TERMO DE ENTREGA E RECEBIMENTO
+                            </h2>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; text-align: center;">
+                                <div>
+                                    <div style="border-bottom: 1px solid #0f172a; margin-bottom: 3px;"></div>
+                                    <p style="font-size: 8pt; font-weight: 700; margin: 0; color: #0f172a;">Solicitante: ${nomeFinal}</p>
+                                    <p style="font-size: 6pt; color: #64748b; margin: 2px 0 0 0;">Declaro ter recebido as passagens acima especificadas</p>
+                                </div>
+                                <div>
+                                    <div style="border-bottom: 1px solid #0f172a; margin-bottom: 3px;"></div>
+                                    <p style="font-size: 8pt; font-weight: 700; margin: 0; color: #0f172a;">Assinatura do Responsável pela Entrega Cofre</p>
+                                    <p style="font-size: 6pt; color: #64748b; margin: 2px 0 0 0;">Visto de Liberação e Conferência do Pedido</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rodapé Centralizado Sem Cortes -->
+                        <div style="border-top: 1.5px solid #0f172a; padding-top: 3px; display: flex; justify-content: space-around; align-items: center; font-size: 7pt; color: #0f172a; text-align: center; width: 100%;">
+                            <span>SETOR: <strong>VIA NOVA</strong></span>
+                            <span>•</span>
+                            <span>CLASSIFICAÇÃO: <strong>RESTRITO</strong></span>
+                            <span>•</span>
+                            <span style="font-weight: 700;">Data/Hora Emissão: ${dataHoraAtual}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // IMPRESSÃO A4 COM FORMATO RESTRITO E DOWNLOAD AUTOMÁTICO DE PDF
+        function imprimirSolicitacao() {
+            if (solicitacaoItens.length === 0) {
+                exibirToast('Adicione pelo menos uma passagem antes de imprimir!', 'error');
+                return;
+            }
+
+            const nomeSolicitante = document.getElementById('solicitanteNome').value.trim();
+            const setorSolicitante = document.getElementById('solicitanteSetor').value.trim();
+            const dataSolicitacao = document.getElementById('solicitanteData').value;
+            const obsSolicitacao = document.getElementById('solicitanteObs').value.trim();
+
+            if (!nomeSolicitante) {
+                exibirToast('Por favor, informe o Nome do Solicitante antes de gerar o PDF.', 'error');
+                document.getElementById('solicitanteNome').focus();
+                return;
+            }
+
+            salvarNovoHistorico(nomeSolicitante, setorSolicitante, obsSolicitacao);
+
+            const elAssNome = document.getElementById('assNomeSolicitante');
+            if (elAssNome) elAssNome.innerText = `Solicitante: ${nomeSolicitante}`;
+
+            const dataHoraAtual = new Date().toLocaleString('pt-BR');
+            const dataFormatada = dataSolicitacao ? new Date(dataSolicitacao + 'T00:00:00').toLocaleDateString('pt-BR') : '-';
+
+            const conteudoDocumento = gerarDocumentoHTML(nomeSolicitante, setorSolicitante, dataFormatada, obsSolicitacao, dataHoraAtual);
+
+            // Injeta o conteúdo idêntico no container de impressão direta
+            document.getElementById('printContainerDirect').innerHTML = conteudoDocumento;
+
+            exibirToast('Gerando e baixando PDF...', 'info');
+
+            const nomeArquivo = `Solicitacao_Passagens_${nomeSolicitante.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`;
+
+            const opcoes = {
+                margin:       0,
+                filename:     nomeArquivo,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false, windowWidth: 794 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            const tempDiv = document.createElement('div');
+            tempDiv.style.width = '210mm';
+            tempDiv.style.height = '297mm';
+            tempDiv.innerHTML = conteudoDocumento;
+
+            html2pdf().set(opcoes).from(tempDiv).save().then(() => {
+                exibirToast('Download do PDF concluído com sucesso!', 'success');
+                setTimeout(() => {
+                    window.print();
+                }, 400);
+            }).catch(err => {
+                console.error("Erro ao gerar PDF:", err);
+                window.print();
+            });
+        }
+
+        function exibirToast(mensagem, tipo = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            if (!toast || !toastMessage || !toastIcon) return;
+
+            toastMessage.innerText = mensagem;
+
+            if (tipo === 'success') {
+                toastIcon.className = 'fa-solid fa-circle-check text-emerald-400 text-lg';
+            } else if (tipo === 'error') {
+                toastIcon.className = 'fa-solid fa-circle-xmark text-red-400 text-lg';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-info text-blue-400 text-lg';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
