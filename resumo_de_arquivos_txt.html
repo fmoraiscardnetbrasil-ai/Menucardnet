@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumo de Arquivos TXT</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons para ícones modernos -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Fonte Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Navbar / Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/20">
+                    <i class="ph ph-file-text text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-slate-900 leading-tight">Leitor & Resumo TXT</h1>
+                    <p class="text-xs text-slate-500">Extraia a última linha de múltiplos arquivos instantaneamente</p>
+                </div>
+            </div>
+
+            <!-- Toast / Notificação de Cópia -->
+            <div id="toast" class="hidden opacity-0 transition-opacity duration-300 bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-medium flex items-center gap-2 shadow-lg">
+                <i class="ph ph-check-circle text-green-400 text-lg"></i>
+                <span id="toast-message">Copiado com sucesso!</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Upload & Options -->
+        <div class="lg:col-span-5 space-y-6">
+            
+            <!-- Drag & Drop Zone -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <h2 class="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                    <i class="ph ph-upload-simple text-blue-600"></i> Selecionar Arquivos
+                </h2>
+                
+                <div 
+                    id="drop-zone"
+                    class="border-2 border-dashed border-slate-300 hover:border-blue-500 hover:bg-blue-50/50 rounded-xl p-8 text-center transition-all cursor-pointer flex flex-col items-center justify-center group"
+                >
+                    <input type="file" id="file-input" multiple accept=".txt" class="hidden">
+                    <div class="w-14 h-14 bg-blue-50 group-hover:bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 transition-colors">
+                        <i class="ph ph-cloud-arrow-up text-3xl"></i>
+                    </div>
+                    <p class="text-sm font-medium text-slate-700 mb-1">
+                        Arraste e solte seus arquivos TXT aqui
+                    </p>
+                    <p class="text-xs text-slate-400 mb-4">
+                        ou clique para navegar no seu computador
+                    </p>
+                    <button type="button" onclick="document.getElementById('file-input').click()" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm">
+                        Escolher Arquivos
+                    </button>
+                </div>
+
+                <!-- Configurações Rápidas -->
+                <div class="mt-5 pt-5 border-t border-slate-100 space-y-3">
+                    <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
+                        <input type="checkbox" id="ignore-empty" checked class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 border-slate-300">
+                        <span>Ignorar linhas em branco no final dos arquivos</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
+                        <input type="checkbox" id="sort-name" class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 border-slate-300">
+                        <span>Ordenar resultados por nome de arquivo (A-Z)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Dicas / Instruções -->
+            <div class="bg-blue-50/70 rounded-2xl p-5 border border-blue-100 text-xs text-blue-900 space-y-2">
+                <div class="font-semibold flex items-center gap-1.5 text-blue-800 text-sm mb-1">
+                    <i class="ph ph-lightbulb text-base"></i> Como funciona?
+                </div>
+                <p class="text-blue-700/90 leading-relaxed">
+                    Ideal para relatórios diários de caixa, fechamentos de sistema ou arquivos de log. Selecione múltiplos arquivos (ex: <em>caixa_01.txt</em>, <em>caixa_02.txt</em>) e o sistema lerá apenas o saldo ou a instrução final de cada um localmente no seu próprio navegador.
+                </p>
+            </div>
+        </div>
+
+        <!-- Right Column: Results & Summary -->
+        <div class="lg:col-span-7 flex flex-col space-y-4">
+            
+            <!-- Actions Toolbar -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-slate-800">Resumo</span>
+                    <span id="file-counter" class="bg-slate-100 text-slate-600 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                        0 arquivos
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <!-- Busca rápida -->
+                    <div class="relative flex-grow sm:flex-grow-0">
+                        <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                        <input type="text" id="search-input" placeholder="Filtrar..." class="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-36">
+                    </div>
+
+                    <!-- Botão Copiar -->
+                    <button id="btn-copy" onclick="copySummary()" disabled class="disabled:opacity-50 disabled:cursor-not-allowed bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors">
+                        <i class="ph ph-copy text-sm"></i> Copiar
+                    </button>
+
+                    <!-- Botão Exportar TXT -->
+                    <button id="btn-export" onclick="exportSummary()" disabled class="disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors">
+                        <i class="ph ph-download-simple text-sm"></i> Exportar
+                    </button>
+
+                    <!-- Botão Limpar -->
+                    <button id="btn-clear" onclick="clearResults()" disabled class="disabled:opacity-50 disabled:cursor-not-allowed text-rose-600 hover:bg-rose-50 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors" title="Limpar tudo">
+                        <i class="ph ph-trash text-base"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Empty State / Placeholder -->
+            <div id="empty-state" class="bg-white rounded-2xl border border-dashed border-slate-200 p-12 text-center flex-grow flex flex-col items-center justify-center">
+                <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-3">
+                    <i class="ph ph-files text-3xl"></i>
+                </div>
+                <h3 class="text-sm font-semibold text-slate-700">Nenhum arquivo carregado</h3>
+                <p class="text-xs text-slate-400 max-w-sm mt-1">
+                    Selecione ou arraste arquivos TXT na caixa ao lado para gerar o relatório consolidado.
+                </p>
+            </div>
+
+            <!-- Results List Container -->
+            <div id="results-container" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex-grow flex flex-col">
+                <div class="overflow-x-auto flex-grow max-h-[500px]">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                                <th class="py-3 px-4 w-1/3">Arquivo</th>
+                                <th class="py-3 px-4">Última Linha (Resultado / Saldo)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-table-body" class="divide-y divide-slate-100 font-normal">
+                            <!-- Linhas inseridas dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Totalizador no Footer -->
+                <div class="bg-slate-50 border-t border-slate-200 px-4 py-3 flex items-center justify-between text-xs text-slate-500">
+                    <span>Linhas processadas: <strong id="processed-count" class="text-slate-700">0</strong></span>
+                    <span class="text-slate-400">Processamento 100% local e seguro</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
+        <div class="max-w-6xl mx-auto px-4 text-center text-xs text-slate-400">
+            Resumo de Arquivos TXT &bull; Ferramenta Utilitária Frontend
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Guardar dados processados em memória
+        let processedData = []; // Array de { name: string, lastLine: string }
+
+        // Elementos do DOM
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const resultsTableBody = document.getElementById('results-table-body');
+        const resultsContainer = document.getElementById('results-container');
+        const emptyState = document.getElementById('empty-state');
+        const fileCounter = document.getElementById('file-counter');
+        const processedCount = document.getElementById('processed-count');
+        const searchInput = document.getElementById('search-input');
+        const ignoreEmptyCheckbox = document.getElementById('ignore-empty');
+        const sortNameCheckbox = document.getElementById('sort-name');
+
+        const btnCopy = document.getElementById('btn-copy');
+        const btnExport = document.getElementById('btn-export');
+        const btnClear = document.getElementById('btn-clear');
+
+        // Drag & Drop Events
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('border-blue-500', 'bg-blue-50/50');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('border-blue-500', 'bg-blue-50/50');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        // Checkbox listeners para re-renderizar
+        ignoreEmptyCheckbox.addEventListener('change', () => {
+            if (fileInput.files.length > 0 || processedData.length > 0) {
+                // Se já houver arquivos, reprocessar
+                renderResults();
+            }
+        });
+
+        sortNameCheckbox.addEventListener('change', () => {
+            renderResults();
+        });
+
+        searchInput.addEventListener('input', () => {
+            renderResults();
+        });
+
+        // Manipula os arquivos selecionados
+        function handleFiles(files) {
+            const txtFiles = Array.from(files).filter(file => file.name.endsWith('.txt') || file.type === 'text/plain');
+
+            if (txtFiles.length === 0) {
+                showToast('Nenhum arquivo .txt válido foi encontrado.', true);
+                return;
+            }
+
+            const readers = txtFiles.map(file => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const content = e.target.result;
+                        const lastLine = extractLastLine(content);
+                        resolve({
+                            name: file.name,
+                            lastLine: lastLine,
+                            rawContent: content
+                        });
+                    };
+                    reader.onerror = () => {
+                        resolve({
+                            name: file.name,
+                            lastLine: '[Erro ao ler arquivo]'
+                        });
+                    };
+                    reader.readAsText(file, 'UTF-8');
+                });
+            });
+
+            Promise.all(readers).then(results => {
+                // Adiciona novos resultados ou substitui (neste caso adiciona evitando duplicados exatos)
+                results.forEach(item => {
+                    // Atualizar item existente ou adicionar novo
+                    const existingIdx = processedData.findIndex(d => d.name === item.name);
+                    if (existingIdx >= 0) {
+                        processedData[existingIdx] = item;
+                    } else {
+                        processedData.push(item);
+                    }
+                });
+
+                renderResults();
+                showToast(`${results.length} arquivo(s) processado(s)!`);
+            });
+        }
+
+        // Extrai a última linha de um texto
+        function extractLastLine(content) {
+            if (!content) return '[Arquivo Vazio]';
+            
+            const ignoreEmpty = ignoreEmptyCheckbox.checked;
+            let lines = content.split(/\r?\n/);
+
+            if (ignoreEmpty) {
+                lines = lines.filter(line => line.trim() !== '');
+            }
+
+            if (lines.length === 0) return '[Sem linhas válidas]';
+            
+            return lines[lines.length - 1].trim();
+        }
+
+        // Renderiza os resultados na tabela
+        function renderResults() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            
+            // Reprocessar linhas caso a opção de ignorar vazios mude
+            processedData.forEach(item => {
+                if (item.rawContent) {
+                    item.lastLine = extractLastLine(item.rawContent);
+                }
+            });
+
+            // Clonar e filtrar
+            let dataToDisplay = [...processedData];
+
+            if (searchTerm) {
+                dataToDisplay = dataToDisplay.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm) || 
+                    item.lastLine.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            // Ordenação
+            if (sortNameCheckbox.checked) {
+                dataToDisplay.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+            }
+
+            // Exibição do estado
+            if (processedData.length === 0) {
+                emptyState.classList.remove('hidden');
+                resultsContainer.classList.add('hidden');
+                btnCopy.disabled = true;
+                btnExport.disabled = true;
+                btnClear.disabled = true;
+                fileCounter.textContent = '0 arquivos';
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+            btnCopy.disabled = false;
+            btnExport.disabled = false;
+            btnClear.disabled = false;
+
+            fileCounter.textContent = `${processedData.length} arquivo(s)`;
+            processedCount.textContent = dataToDisplay.length;
+
+            // Preencher Tabela
+            resultsTableBody.innerHTML = '';
+
+            if (dataToDisplay.length === 0) {
+                resultsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="2" class="py-6 text-center text-slate-400">
+                            Nenhum resultado encontrado para a busca "${searchTerm}"
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            dataToDisplay.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = index % 2 === 0 ? 'bg-white hover:bg-slate-50/80 transition-colors' : 'bg-slate-50/50 hover:bg-slate-50 transition-colors';
+                
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-medium text-slate-800 flex items-center gap-2">
+                        <i class="ph ph-file-text text-blue-500 text-base"></i>
+                        <span class="truncate max-w-[200px] sm:max-w-xs" title="${item.name}">${item.name}</span>
+                    </td>
+                    <td class="py-3 px-4 font-mono text-slate-700 bg-slate-50/30 font-medium">
+                        <span class="inline-block bg-slate-100 text-slate-800 px-2.5 py-1 rounded border border-slate-200/60">
+                            ${escapeHtml(item.lastLine)}
+                        </span>
+                    </td>
+                `;
+                resultsTableBody.appendChild(tr);
+            });
+        }
+
+        // Formata o resumo em texto simples para cópia/exportação
+        function generateSummaryText() {
+            let dataToFormat = [...processedData];
+            if (sortNameCheckbox.checked) {
+                dataToFormat.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+            }
+            return dataToFormat.map(item => `${item.name} -> ${item.lastLine}`).join('\n');
+        }
+
+        // Copiar Resumo
+        function copySummary() {
+            const text = generateSummaryText();
+            if (!text) return;
+
+            // Método executado com suporte para iframe
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast('Resumo copiado para a área de transferência!');
+            } catch (err) {
+                showToast('Falha ao copiar texto.', true);
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+
+        // Exportar como arquivo TXT
+        function exportSummary() {
+            const text = generateSummaryText();
+            if (!text) return;
+
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `resumo_caixas_${new Date().toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('Arquivo de resumo baixado!');
+        }
+
+        // Limpar Dados
+        function clearResults() {
+            processedData = [];
+            fileInput.value = '';
+            searchInput.value = '';
+            renderResults();
+            showToast('Lista limpa.');
+        }
+
+        // Toast de Notificação
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+
+            toastMsg.textContent = message;
+            
+            if (isError) {
+                toast.classList.remove('bg-slate-900');
+                toast.classList.add('bg-rose-600');
+            } else {
+                toast.classList.remove('bg-rose-600');
+                toast.classList.add('bg-slate-900');
+            }
+
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.remove('opacity-0'), 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 3000);
+        }
+
+        // Sanitize HTML simples
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
